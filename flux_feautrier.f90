@@ -1,5 +1,9 @@
 program flux_feautrier
 
+  use auxiliary    
+
+  implicit none
+  
   integer, parameter :: nw=1
   integer, parameter :: nz=640
   integer, parameter :: ng=3
@@ -14,10 +18,10 @@ program flux_feautrier
   real, dimension(nz) :: aa,bb,cc,dd
   
   !real :: alpha_e = 0.6648e-24 ! coefficient
-  integer :: overflow_limit_exp
-  !real :: float_info_max = 1.797693134862316E+308
+  integer :: overflow_limit
+  real :: float_info_max = 1.797693134862316E+34
 
-  integer :: greyindex
+  integer :: greyindex,i,iwave
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey,dU
 
@@ -31,12 +35,12 @@ program flux_feautrier
   z1 = 4717816996570149.0
   dz = (z1-z0)/nz
   do i=1,nz
-     z[i] = z0 + (i-1)*dz
-     T[i] = 65000.
+     z(i) = z0 + (i-1)*dz
+     T(i) = 65000.
   enddo
   
   rho=rho0*exp(-.5*z**2/H**2)
-  overflow_limit = int(floor(log10(float_info)))
+  overflow_limit = int(floor(log10(float_info_max)))
   
   !n = rho*mp1
   !call hydrogen_ionization_fraction(rho,T,NHII_NHINHII)
@@ -99,13 +103,13 @@ program flux_feautrier
      dd(nz) = -source_function(nz,iwave) * zeta * absorp_coeff(nz,iwave)**2
 
 ! solve the system of equations
-     !call TDMAsolver(aa, bb, cc, dd, U(:,iwave))
+     call tridag(aa, bb, cc, dd, U(:,iwave))
      !call update_ghosts(U(:,iwave))
      !call der6(U(:,iwave),dU)
-     V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
+     !V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
 
-     Ip(:,iwave) = U(l1:l2,iwave) + V(:,iwave)
-     Im(:,iwave) = U(l1:l2,iwave) - V(:,iwave)
+     !Ip(:,iwave) = U(l1:l2,iwave) + V(:,iwave)
+     !Im(:,iwave) = U(l1:l2,iwave) - V(:,iwave)
 
   enddo
 
@@ -126,3 +130,4 @@ program flux_feautrier
 !    endsubroutine der_x
 
 endprogram flux_feautrier
+!********
