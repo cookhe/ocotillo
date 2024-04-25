@@ -19,7 +19,7 @@ program flux_feautrier
   
   !real :: alpha_e = 0.6648e-24 ! coefficient
   integer :: overflow_limit
-  real :: float_info_max = 1.797693134862316E+34
+  real :: float_info_max=3.9085e307
 
   integer :: greyindex,i,iwave
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
@@ -103,7 +103,10 @@ program flux_feautrier
      dd(nz) = -source_function(nz,iwave) * zeta * absorp_coeff(nz,iwave)**2
 
 ! solve the system of equations
+
      call tridag(aa, bb, cc, dd, U(:,iwave))
+     print*,U(:,iwave)
+
      !call update_ghosts(U(:,iwave))
      !call der6(U(:,iwave),dU)
      !V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
@@ -111,23 +114,9 @@ program flux_feautrier
      !Ip(:,iwave) = U(l1:l2,iwave) + V(:,iwave)
      !Im(:,iwave) = U(l1:l2,iwave) - V(:,iwave)
 
+
+
   enddo
-
-
 !
-!subroutine der6(f,df)
-!!
-!  real, dimension (mx), intent(in)  :: f
-!  real, dimension (nx), intent(out) :: df
-!!                                                                                                                                                                                !  
-!  real, dimension (nx) :: fac
-!!                                                                                                                                                                                ! 
-!  fac=(1./60)*dx_1(l1:l2)
-!  df=fac*(+ 45.0*(f(l1+1:l2+1)-f(l1-1:l2-1)) &
-!       -  9.0*(f(l1+2:l2+2)-f(l1-2:l2-2)) &
-!       +      (f(l1+3:l2+3)-f(l1-3:l2-3)))
-!!                                                                                                                                                                                !  
-!    endsubroutine der_x
-
 endprogram flux_feautrier
 !********
