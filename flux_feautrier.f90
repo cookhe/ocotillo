@@ -29,17 +29,23 @@ program flux_feautrier
   real :: wave_cm,wave_angstrom
 
   real :: zeta,dz,z0,z1
-  real :: H=1.496d14,rho0=1d-9
+  real :: H=1.496d14,rho0=1d-9,rho_floor=1d-24
 
   z0 = -4717816996570149.0
   z1 = 4717816996570149.0
   dz = (z1-z0)/nz
   do i=1,nz
-     z(i) = z0 + (i-1)*dz
-     T(i) = 65000.
-  enddo
+   z(i) = z0 + (i-1)*dz
+   T(i) = 65000.
+   ! Implement a desity floor
+   if ( rho0*exp(-.5*z(i)**2/H**2) < 1d-24 ) then
+      rho(i) = 1d-24
+   else
+      rho(i) = rho0*exp(-.5*z(i)**2/H**2)
+   end if ! density floor
+  enddo ! populate z, T, rho arrays
   
-  rho=rho0*exp(-.5*z**2/H**2)
+!   rho=rho0*exp(-.5*z**2/H**2)
   overflow_limit = int(floor(log10(float_info_max)))
   
   !n = rho*mp1
@@ -65,6 +71,14 @@ program flux_feautrier
   alpha_grey = 3.68e22 * T**(-3.5) *  rho
   kappa_grey = (alpha_grey+sigma_grey)*rho
   omega_grey = sigma_grey / (alpha_grey + sigma_grey)
+
+   print*, ' T = ', minval(T), maxval(T)
+   print*, ' B_grey = ', minval(B_grey), maxval(B_grey)
+   print*, ' rho = ', minval(rho), maxval(rho)
+   print*, ' sigma_grey = ', sigma_grey
+   print*, ' alpha_grey = ', minval(alpha_grey), maxval(alpha_grey)
+   print*, ' kappa_grey = ', minval(kappa_grey), maxval(kappa_grey)
+   print*, ' omega_grey = ', minval(omega_grey), maxval(omega_grey)
 
   do iwave=1,nw
      wave_cm = waves_cm(iwave)
