@@ -1,7 +1,7 @@
 module auxiliary
   implicit none
   private
-  public :: tridag 
+  public :: tridag,update_ghosts,der
 contains
 subroutine tridag(a,b,c,r,u)
 !                                                                                                                
@@ -46,4 +46,33 @@ subroutine tridag(a,b,c,r,u)
       enddo
 !                                                                                                                
     endsubroutine tridag
-endmodule auxiliary    
+!******************************************
+    subroutine update_ghosts(f,ng,n1,n2)
+!
+      real, dimension(:), intent(inout) :: f
+      integer :: i,ng,n1,n2
+!      
+      do i=1,ng
+         f(n1-i)=2*f(n1) - f(n1+i)
+         f(n2+i)=2*f(n2) - f(n2-i)
+      enddo
+!
+    endsubroutine update_ghosts
+!******************************************
+    subroutine der(f,df,mz,nz,n1,n2)
+
+      integer :: mz,nz
+      
+      real, dimension(mz) :: f
+      real, dimension(nz) :: df
+      integer :: n1,n2
+      
+      intent(in) :: f
+      intent(out) :: df
+
+      df=1./60.*(+ 45.0*(f(n1+1:n2+1)-f(n1-1:n2-1)) &
+           -  9.0*(f(n1+2:n2+2)-f(n1-2:n2-2)) &
+           +      (f(n1+3:n2+3)-f(n1-3:n2-3)))      
+    endsubroutine der
+!******************************************         
+  endmodule auxiliary

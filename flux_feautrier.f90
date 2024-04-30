@@ -5,17 +5,21 @@ program flux_feautrier
   implicit none
   
   integer, parameter :: nw=1
-  integer, parameter :: nz=10 ! 640
+  integer, parameter :: nz=640
   integer, parameter :: ng=3
 
-  real, dimension(nz) :: z
+  integer, parameter :: mz=nz+2*ng
+  integer, parameter :: n1=ng+1,n2=mz-ng
 
-  real, dimension(nz+2*ng,nw) :: U
-!   real(kind=8), dimension(nz,nw) :: V,Ip,Im
+  
+  real, dimension(mz) :: z
+
+  real, dimension(mz,nw) :: U
+  real, dimension(nz,nw) :: V,Ip,Im
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   real, dimension(nz,nw) :: absorp_coeff,source_function,omega
 
-  real, dimension(nz) :: aa,bb,cc,dd,kappa_p,kappa_m
+  real, dimension(nz) :: aa,bb,cc,dd,kappa_p,kappa_m,dU
   
   !real :: alpha_e = 0.6648e-24 ! coefficient
   integer :: overflow_limit
@@ -29,23 +33,21 @@ program flux_feautrier
   real :: wave_cm,wave_angstrom
 
   real :: zeta,dz,z0,z1
-  real :: rho0=1d-9!,rho_floor=1d-24,H=1.496d14
+  real :: rho0=1d-9,rho_floor=1d-24,H=1.496d14
 
   z0 = -4717816996570149.0
   z1 = 4717816996570149.0
   dz = (z1-z0)/nz
   do i=1,nz
-   z(i) = z0 + (i-1)*dz
+   z(n1+i-1) = z0 + (i-1)*dz
    T(i) = 65000.
-   rho(i) = rho0
+   rho(i) = rho0*exp(-.5*z(i-1+n1)**2/H**2)
    ! Implement a desity floor
-   ! if ( rho0*exp(-.5*z(i)**2/H**2) < 1d-24 ) then
-      ! rho(i) = 1d-24
-   ! else
-      ! rho(i) = rho0*exp(-.5*z(i)**2/H**2)
-   ! end if ! density floor
+   if (rho(i) < rho_floor) then 
+      rho(i) = rho_floor
+   endif ! density floor
   enddo ! populate z, T, rho arrays
-  
+
 !   rho=rho0*exp(-.5*z**2/H**2)
   overflow_limit = int(floor(log10(float_info_max)))
   
@@ -117,7 +119,7 @@ program flux_feautrier
        dd(iz) = -source_function(iz,iwave) * zeta
      enddo
    
-     ! Populate boundary values
+     ! Popul ate boundary values
      aa(1) = 0
      zeta  = absorp_coeff(1,iwave) * dz**2 * (1 - omega(1,iwave)) / 4
      bb(1) = -(1/absorp_coeff(1,iwave) + dz + zeta) * absorp_coeff(1,iwave)**2
@@ -132,17 +134,22 @@ program flux_feautrier
  
 ! solve the system of equations
 
-     call tridag(aa, bb, cc, dd, U(ng+1:nz+(2*ng)-ng,iwave)) ! Write restults to U(:,iwave)
-     print*,'U(:,iwave)='
-     print*, U(:,iwave)
+     call tridag(aa, bb, cc, dd, U(n1:n2,iwave)) ! Write restults to U(:,iwave)
+     call update_ghosts(U(:,iwave),ng,n1,n2)
+     
+     call der(U(:,iwave),dU,mz,nz,n1,n2)
+     V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
 
-     !call update_ghosts(U(:,iwave))
-     !call der6(U(:,iwave),dU)
-     !V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
+     Ip(:,iwave) = U(n1:n2,iwave) + V(:,iwave)
+     Im(:,iwave) = U(n1:n2,iwave) - V(:,iwave)
 
-     !Ip(:,iwave) = U(l1:l2,iwave) + V(:,iwave)
-     !Im(:,iwave) = U(l1:l2,iwave) - V(:,iwave)
-
+     print*,'U(:,iwave)=',U(:,iwave)
+     print*,''
+     print*,'V(:,iwave)=',V(:,iwave)
+     print*,''
+     print*,'Ip(:,iwave)=',Ip(:,iwave)
+     print*,''
+     print*,'Im(:,iwave)=',Im(:,iwave)
 
 
   enddo ! wavelength loop
