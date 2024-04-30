@@ -1,17 +1,10 @@
 program flux_feautrier
 
-  use auxiliary    
+  use auxiliary
+  use grid
 
   implicit none
-  
-  integer, parameter :: nw=1
-  integer, parameter :: nz=640
-  integer, parameter :: ng=3
 
-  integer, parameter :: mz=nz+2*ng
-  integer, parameter :: n1=ng+1,n2=mz-ng
-
-  
   real, dimension(mz) :: z
 
   real, dimension(mz,nw) :: U
@@ -134,10 +127,10 @@ program flux_feautrier
  
 ! solve the system of equations
 
-     call tridag(aa, bb, cc, dd, U(n1:n2,iwave)) ! Write restults to U(:,iwave)
-     call update_ghosts(U(:,iwave),ng,n1,n2)
+     call tridag(aa, bb, cc, dd, U(n1:n2,iwave))
+     call update_ghosts(U(:,iwave))
      
-     call der(U(:,iwave),dU,mz,nz,n1,n2)
+     call der(U(:,iwave),dU)
      V(:,iwave) = -1/absorp_coeff(:,iwave) * dU / dz
 
      Ip(:,iwave) = U(n1:n2,iwave) + V(:,iwave)
