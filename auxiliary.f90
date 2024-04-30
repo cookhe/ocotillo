@@ -3,7 +3,7 @@ module auxiliary
   private
   public :: tridag 
 contains
-subroutine tridag(a,b,c,r,u,err,msg)
+subroutine tridag(a,b,c,r,u)
 !                                                                                                                
 !  Solves a tridiagonal system.                                                                                  
 !                                                                                                                
@@ -20,18 +20,14 @@ subroutine tridag(a,b,c,r,u,err,msg)
   real, dimension(:), intent(in) :: a,b,c,r
       real, dimension(:), intent(out) :: u
       real, dimension(size(b)) :: gam
-      logical, intent(out), optional :: err
-      character(len=*), intent(out), optional :: msg
       integer :: n,j
       real :: bet
 !                                                                                                                
-      if (present(err)) err=.false.
       n=size(b)
       bet=b(1)
       if (bet==0.0) then
-        print*, ' ERROR tridiag stage 1: bet=b(1)) = ', bet
-        if (present(msg)) msg = 'tridag: Error at code stage 1'
-        if (present(err)) err = .true.
+         print*, ' ERROR tridiag stage 1: bet=b(1)) = ', bet
+         stop
       endif
 !                                                                                                                
       u(1)=r(1)/bet
@@ -40,9 +36,7 @@ subroutine tridag(a,b,c,r,u,err,msg)
         bet=b(j)-a(j)*gam(j)
         if (bet==0.0) then
           print*, 'ERROR tridiag stage 2: bet = b(j)-a(j)*gam(j) =', bet
-          if (present(msg)) msg = 'tridag: Error at code stage 2'
-          if (present(err)) err = .true.
-          return
+          stop
         endif
         u(j)=(r(j)-a(j)*u(j-1))/bet
       enddo
