@@ -20,7 +20,7 @@ program flux_feautrier
 
   integer :: greyindex,i,iwave,iz
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
-  real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey!,dU
+  real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
   real, dimension(nw) :: waves_cm,waves_angstrom
   real :: wave_cm,wave_angstrom
