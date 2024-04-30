@@ -112,7 +112,7 @@ program flux_feautrier
        dd(iz) = -source_function(iz,iwave) * zeta
      enddo
    
-     ! Popul ate boundary values
+     ! Populate boundary values
      aa(1) = 0
      zeta  = absorp_coeff(1,iwave) * dz**2 * (1 - omega(1,iwave)) / 4
      bb(1) = -(1/absorp_coeff(1,iwave) + dz + zeta) * absorp_coeff(1,iwave)**2
