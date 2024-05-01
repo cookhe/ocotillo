@@ -2,6 +2,7 @@ program flux_feautrier
 
   use auxiliary
   use grid
+  use disk, only:temperature_gaussian
 
   implicit none
 
@@ -44,6 +45,11 @@ program flux_feautrier
 !   rho=rho0*exp(-.5*z**2/H**2)
   overflow_limit = int(floor(log10(float_info_max)))
   
+!   print*,' T before = ', T
+  ! Apply temperature profile
+  call temperature_gaussian(T,z)
+  print*,maxval(T), minval(T)
+!   print*,' T after = ', T
   !n = rho*mp1
   !call hydrogen_ionization_fraction(rho,T,NHII_NHINHII)
 
