@@ -1,0 +1,17 @@
+!  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim)
+&input
+  z0 = -4717816996570149.0
+  z1 = 4717816996570149.0
+
+  rho0=1d-9
+  rho_floor=1d-24
+
+  H=1.496d14
+/
+&disk_input
+  eps = 0.2
+  isoTemp = 64857.04298198191
+  sigma = 2.54d14
+  midTemp = 61341
+  floorTemp = 3
+/

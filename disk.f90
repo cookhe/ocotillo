@@ -3,6 +3,10 @@ module disk
 
   use grid
   implicit none
+
+  real :: eps,isoTemp,sigma,midTemp,floorTemp,switchTemp
+  
+  namelist /disk_input/ eps,isoTemp,sigma,midTemp,floorTemp
   
 contains
 
@@ -10,14 +14,14 @@ contains
     real, dimension(nz), intent(inout) :: T
     real, dimension(mz), intent(in) :: z
     real, dimension(nz) :: Tgauss
-    real :: eps,isoTemp,sigma,midTemp,floorTemp,switchTemp
     integer :: i
-        
-    eps = 0.2
-    isoTemp = 64857.04298198191
-    sigma = 2.54d14
-    midTemp = 61341
-    floorTemp = 3
+
+    open(30,file='input.in')
+    read(30,nml=disk_input)
+    close(30)
+
+    print*,eps,isoTemp,sigma,midTemp,floorTemp
+    
     switchTemp = (1+eps) * isoTemp ! must be larger than mdiTemp
     
     ! Caluclate the gaussian profile

@@ -26,30 +26,33 @@ program flux_feautrier
   real, dimension(nw) :: waves_cm,waves_angstrom
   real :: wave_cm,wave_angstrom
 
-  real :: zeta,dz,z0,z1
-  real :: rho0=1d-9,rho_floor=1d-24,H=1.496d14
-
-  z0 = -4717816996570149.0
-  z1 = 4717816996570149.0
+  real :: zeta,dz,z0,z1,rho0,rho_floor,H
+!
+  namelist /input/ z0,z1,rho0,rho_floor,H
+!  
+!  Read the input namelist with the user-defined parameters. 
+!  
+  open(20,file='input.in')
+  read(20,nml=input)
+  close(20)
+!    
   dz = (z1-z0)/nz
-  do i=1,nz
+  arrays: do i=1,nz
    z(n1+i-1) = z0 + (i-1)*dz
    T(i) = 65000.
    rho(i) = rho0*exp(-.5*z(i-1+n1)**2/H**2)
    ! Implement a desity floor
-   if (rho(i) < rho_floor) then 
+   density_floor: if (rho(i) < rho_floor) then 
       rho(i) = rho_floor
-   endif ! density floor
-  enddo ! populate z, T, rho arrays
+   endif density_floor
+  enddo arrays
 
-!   rho=rho0*exp(-.5*z**2/H**2)
   overflow_limit = int(floor(log10(float_info_max)))
   
-!   print*,' T before = ', T
   ! Apply temperature profile
   call temperature_gaussian(T,z)
-  print*,maxval(T), minval(T)
-!   print*,' T after = ', T
+  print*,"maxval(T), minval(T)",maxval(T), minval(T)
+
   !n = rho*mp1
   !call hydrogen_ionization_fraction(rho,T,NHII_NHINHII)
 
@@ -75,7 +78,7 @@ program flux_feautrier
   omega_grey = sigma_grey / (alpha_grey + sigma_grey)
 
   ! Loop over wavelength
-  do iwave=1,nw
+  wavelength: do iwave=1,nw
      wave_cm = waves_cm(iwave)
      wave_angstrom = waves_angstrom(iwave)
 
@@ -119,7 +122,7 @@ program flux_feautrier
      enddo
    
      ! Populate boundary values
-     aa(1) = 0
+     aa(1) = 0.
      zeta  = absorp_coeff(1,iwave) * dz**2 * (1 - omega(1,iwave)) / 4
      bb(1) = -(1/absorp_coeff(1,iwave) + dz + zeta) * absorp_coeff(1,iwave)**2
      cc(1) = 1/absorp_coeff(1,iwave) * absorp_coeff(1,iwave)**2
@@ -128,7 +131,7 @@ program flux_feautrier
      aa(nz) = 1/absorp_coeff(nz,iwave) * absorp_coeff(nz,iwave)**2
      zeta   = absorp_coeff(nz,iwave) * dz**2 * (1 - omega(nz,iwave)) / 4
      bb(nz) = -(1/absorp_coeff(nz,iwave) + dz + zeta) * absorp_coeff(nz,iwave)**2
-     cc(nz) = 0
+     cc(nz) = 0.
      dd(nz) = -source_function(nz,iwave) * zeta * absorp_coeff(nz,iwave)**2
  
 ! solve the system of equations
@@ -142,16 +145,15 @@ program flux_feautrier
      Ip(:,iwave) = U(n1:n2,iwave) + V(:,iwave)
      Im(:,iwave) = U(n1:n2,iwave) - V(:,iwave)
 
-     print*,'U(:,iwave)=',U(:,iwave)
-     print*,''
-     print*,'V(:,iwave)=',V(:,iwave)
-     print*,''
-     print*,'Ip(:,iwave)=',Ip(:,iwave)
-     print*,''
-     print*,'Im(:,iwave)=',Im(:,iwave)
-
-
-  enddo ! wavelength loop
+  enddo wavelength
 !
+  open(10,file="intensity.dat",status="replace",action='write')
+  do i=1,nz
+    do iwave=1,nw
+      write(unit=10,FMT=*) i,iwave,U(n1+i-1,iwave),V(i,iwave),Ip(i,iwave),Im(i,iwave)
+    enddo
+  enddo
+  close(10)
+  
 endprogram flux_feautrier
 !********
