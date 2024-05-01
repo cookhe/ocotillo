@@ -13,7 +13,7 @@ program flux_feautrier
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   real, dimension(nz,nw) :: absorp_coeff,source_function,omega
 
-  real, dimension(nz) :: aa,bb,cc,dd,kappa_p,kappa_m,dU
+  real, dimension(nz) :: aa,bb,cc,dd,kappa_p,kappa_m
   
   !real :: alpha_e = 0.6648e-24 ! coefficient
   integer :: overflow_limit
@@ -150,14 +150,7 @@ program flux_feautrier
 
   !put this inside a subroutine, like, calculate_auxiliaries
 
-  do iw=1,nw
-    call update_ghosts(U(:,iw))
-    call der(U(:,iw),dU)
-    V(:,iw) = -1/absorp_coeff(:,iw) * dU / dz
-
-    Ip(:,iw) = U(n1:n2,iw) + V(:,iw)
-    Im(:,iw) = U(n1:n2,iw) - V(:,iw)
-  enddo
+  call calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
 !
   open(10,file="intensity.dat",status="replace",action='write')
   do i=1,nz

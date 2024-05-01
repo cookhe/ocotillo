@@ -6,6 +6,7 @@ module auxiliary
   private
   
   public :: tridag,update_ghosts,der
+  public :: calc_auxiliaries
 
 contains
 !******************************************
@@ -74,5 +75,24 @@ contains
                +      (f(n1+3:n2+3)-f(n1-3:n2-3)))
 !    
   endsubroutine der
-!******************************************         
+!******************************************
+  subroutine calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
+
+  real, dimension(mz,nw) :: U
+  real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
+  real, dimension(nz) :: dU
+  real :: dz
+  integer :: iw
+!
+  do iw=1,nw
+    call update_ghosts(U(:,iw))
+    call der(U(:,iw),dU)
+    V(:,iw) = -1/absorp_coeff(:,iw) * dU / dz
+!
+    Ip(:,iw) = U(n1:n2,iw) + V(:,iw)
+    Im(:,iw) = U(n1:n2,iw) - V(:,iw)
+  enddo
+!
+endsubroutine calc_auxiliaries
+!******************************************  
   endmodule auxiliary
