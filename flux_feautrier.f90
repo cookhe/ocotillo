@@ -19,7 +19,7 @@ program flux_feautrier
   integer :: overflow_limit
   real :: float_info_max=3.9085d307
 
-  integer :: greyindex=0,i,iw,iz
+  integer :: greyindex=1,i,iw,iz
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
