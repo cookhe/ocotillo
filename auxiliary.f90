@@ -8,6 +8,7 @@ module auxiliary
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries
   public :: fill_center_coeffs,fill_boundary_coeffs
+  public :: output_data
 
 contains
 !************************************************************************************
@@ -155,7 +156,8 @@ contains
 
     real, dimension(mz,nw) :: U
     real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
-
+    integer :: i,iw
+!
     open(10,file="intensity.dat",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
