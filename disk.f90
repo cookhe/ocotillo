@@ -9,7 +9,7 @@ module disk
   namelist /disk_input/ eps,isoTemp,sigma,midTemp,floorTemp
   
 contains
-
+!************************************************************************************
   subroutine temperature_gaussian(T, z)
     real, dimension(nz), intent(inout) :: T
     real, dimension(mz), intent(in) :: z
@@ -37,5 +37,5 @@ contains
     enddo
 
     endsubroutine temperature_gaussian
-    
+!************************************************************************************
 end module disk

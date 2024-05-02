@@ -19,7 +19,7 @@ program flux_feautrier
   integer :: overflow_limit
   real :: float_info_max=3.9085d307
 
-  integer :: greyindex=1,i,iw,iz
+  integer :: igrey=1,i,iw,iz
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
@@ -85,11 +85,11 @@ program flux_feautrier
   !
   ! Do grey first 
   !
-  absorp_coeff(:,greyindex) = kappa_grey
-  source_function(:,greyindex) = B_grey
-  omega(:,greyindex) = omega_grey
+  absorp_coeff(:,igrey) = kappa_grey
+  source_function(:,igrey) = B_grey
+  omega(:,igrey) = omega_grey
 
-  wavelength: do iw=greyindex+1,nw
+  wavelength: do iw=igrey+1,nw
     wave_cm = waves_cm(iw)
     wave_angstrom = waves_angstrom(iw)
 
@@ -104,15 +104,13 @@ program flux_feautrier
     
     !chi = 1.2398e4 / wave_angstrom
     !stim_factor = 1-10**(-chi*theta)
-      
-
 !
 ! Populate coefficient arrays
 !
     call fill_center_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
     call fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)    
 !
-! solve the system of equations
+! Solve the system of equations
 !
     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
 !
