@@ -7,6 +7,7 @@ module auxiliary
   
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries
+  public :: fill_center_coeffs,fill_boundary_coeffs
 
 contains
 !******************************************
@@ -94,5 +95,55 @@ contains
   enddo
 !
 endsubroutine calc_auxiliaries
-!******************************************  
+!******************************************
+  subroutine fill_center_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
+    real, dimension(nz), intent(inout) :: aa,bb,cc,dd
+    real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
+    real, dimension(nz) :: kappa_m,kappa_p
+    real, intent(in) :: dz
+    real :: zeta
+    integer :: iz
+  
+    ! Populate opacities at point i+1/2
+    do iz=1, nz-1
+      kappa_p(iz) = 0.5 * (absorp_coeff(iz+1) + absorp_coeff(iz))
+    enddo
+     
+    ! Populate opacities at point i-1/2
+    do iz=2, nz
+      kappa_m(iz) = 0.5 * (absorp_coeff(iz) + absorp_coeff(iz-1))
+    enddo
+
+    ! Populate centers of arrays 
+    do iz=2, nz-1
+      aa(iz) = absorp_coeff(iz)**2 / kappa_m(iz)
+      cc(iz) = absorp_coeff(iz)**2 / kappa_p(iz)
+      zeta   = dz*dz * absorp_coeff(iz)**3 * (1 - omega(iz))
+      bb(iz) = -(aa(iz) + cc(iz) + zeta)
+      dd(iz) = -source_function(iz) * zeta
+    enddo
+
+  end subroutine fill_center_coeffs
+  !******************************************
+  subroutine fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
+    real, dimension(nz), intent(inout) :: aa,bb,cc,dd
+    real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
+    real, intent(in) :: dz
+    real :: zeta
+  
+    ! Populate boundary values
+    aa(1) = 0.
+    zeta  = absorp_coeff(1) * dz**2 * (1 - omega(1)) / 4
+    bb(1) = -(1/absorp_coeff(1) + dz + zeta) * absorp_coeff(1)**2
+    cc(1) = 1/absorp_coeff(1) * absorp_coeff(1)**2
+    dd(1) = -source_function(1) * zeta * absorp_coeff(1)**2
+    
+    aa(nz) = 1/absorp_coeff(nz) * absorp_coeff(nz)**2
+    zeta   = absorp_coeff(nz) * dz**2 * (1 - omega(nz)) / 4
+    bb(nz) = -(1/absorp_coeff(nz) + dz + zeta) * absorp_coeff(nz)**2
+    cc(nz) = 0.
+    dd(nz) = -source_function(nz) * zeta * absorp_coeff(nz)**2
+
+  end subroutine fill_boundary_coeffs
+!******************************************
   endmodule auxiliary

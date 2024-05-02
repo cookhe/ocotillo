@@ -84,64 +84,36 @@ program flux_feautrier
   call cpu_time(start)
 
   wavelength: do iw=1,nw
-     wave_cm = waves_cm(iw)
-     wave_angstrom = waves_angstrom(iw)
+    wave_cm = waves_cm(iw)
+    wave_angstrom = waves_angstrom(iw)
 
      
-     !damping_factor = h*c/wave_cm/kb/T
-     !do i=1,nz
-     !   if (damping_factor(i) > overflow_limit) then
-     !      damping_factor(i) = overflow_limit
-     !   endif
-     !enddo
-     !source_function(:,iw) = 2*h*c**2/wave_cm**5 * 1/(exp(damping_factor)-1)
-     
-     !chi = 1.2398e4 / wave_angstrom
-     !stim_factor = 1-10**(-chi*theta)
-     
-     !
-     ! Do grey first 
-     !
-     
-     absorp_coeff(:,iw) = kappa_grey
-     source_function(:,iw) = B_grey
-     omega(:,iw) = omega_grey
-                    
-     ! Populate opacities at point i+1/2
-     do iz=1, nz-1
-       kappa_p(iz) = 0.5 * (absorp_coeff(iz+1,iw) + absorp_coeff(iz,iw))
-     enddo
+    !damping_factor = h*c/wave_cm/kb/T
+    !do i=1,nz
+    !   if (damping_factor(i) > overflow_limit) then
+    !      damping_factor(i) = overflow_limit
+    !   endif
+    !enddo
+    !source_function(:,iw) = 2*h*c**2/wave_cm**5 * 1/(exp(damping_factor)-1)
+    
+    !chi = 1.2398e4 / wave_angstrom
+    !stim_factor = 1-10**(-chi*theta)
       
-     ! Populate opacitiets at point i-1/2
-     do iz=2, nz
-       kappa_m(iz) = 0.5 * (absorp_coeff(iz,iw) + absorp_coeff(iz-1,iw))
-     enddo
+    !
+    ! Do grey first 
+    !
+    absorp_coeff(:,iw) = kappa_grey
+    source_function(:,iw) = B_grey
+    omega(:,iw) = omega_grey
 
-     ! Populate centers of arrays 
-     do iz=2, nz-1
-       aa(iz) = absorp_coeff(iz,iw)**2 / kappa_m(iz)
-       cc(iz) = absorp_coeff(iz,iw)**2 / kappa_p(iz)
-       zeta   = dz*dz * absorp_coeff(iz,iw)**3 * (1 - omega(iz,iw))
-       bb(iz) = -(aa(iz) + cc(iz) + zeta)
-       dd(iz) = -source_function(iz,iw) * zeta
-     enddo
-   
-     ! Populate boundary values
-     aa(1) = 0.
-     zeta  = absorp_coeff(1,iw) * dz**2 * (1 - omega(1,iw)) / 4
-     bb(1) = -(1/absorp_coeff(1,iw) + dz + zeta) * absorp_coeff(1,iw)**2
-     cc(1) = 1/absorp_coeff(1,iw) * absorp_coeff(1,iw)**2
-     dd(1) = -source_function(1,iw) * zeta * absorp_coeff(1,iw)**2
-     
-     aa(nz) = 1/absorp_coeff(nz,iw) * absorp_coeff(nz,iw)**2
-     zeta   = absorp_coeff(nz,iw) * dz**2 * (1 - omega(nz,iw)) / 4
-     bb(nz) = -(1/absorp_coeff(nz,iw) + dz + zeta) * absorp_coeff(nz,iw)**2
-     cc(nz) = 0.
-     dd(nz) = -source_function(nz,iw) * zeta * absorp_coeff(nz,iw)**2
- 
-! solve the system of equations
-
-     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
+    ! Populate coefficient arrays
+    call fill_center_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
+    print*, ' Filled center coeffs'
+    call fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
+    print*, ' Filled boundary coeffs'
+        
+    ! solve the system of equations
+    call tridag(aa, bb, cc, dd, U(n1:n2,iw))
 
   enddo wavelength
 !
