@@ -17,7 +17,6 @@ program flux_feautrier
   
   !real :: alpha_e = 0.6648e-24 ! coefficient
   integer :: overflow_limit
-  real :: float_info_max=3.9085d307
 
   integer :: igrey=1,iw
   real :: sigma_grey

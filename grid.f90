@@ -23,4 +23,6 @@ module grid
 ! Stefan-Boltzmann constant
   real :: sigma_sb=5.670374419d-5
 !  
+  real :: float_info_max=3.9085d307
+!
 end module grid
