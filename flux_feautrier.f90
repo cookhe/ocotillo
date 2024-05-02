@@ -19,7 +19,7 @@ program flux_feautrier
   integer :: overflow_limit
   real :: float_info_max=3.9085d307
 
-  integer :: greyindex,i,iw,iz
+  integer :: greyindex=0,i,iw,iz
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
@@ -73,7 +73,6 @@ program flux_feautrier
   !electron_pressure = ne * kb * T
   !hm_bf_factor = 4.158e-10 * electron_pressure * theta**(5./2) * 10**(0.754 * theta)
   
-  greyindex = 0
   B_grey = sigma_sb*T**4
   alpha_grey = 3.68e22 * T**(-3.5) *  rho
   kappa_grey = (alpha_grey+sigma_grey)*rho
@@ -82,6 +81,13 @@ program flux_feautrier
   ! Loop over wavelength
 
   call cpu_time(start)
+  
+  !
+  ! Do grey first 
+  !
+  absorp_coeff(:,greyindex) = kappa_grey
+  source_function(:,greyindex) = B_grey
+  omega(:,greyindex) = omega_grey
 
   wavelength: do iw=1,nw
     wave_cm = waves_cm(iw)
@@ -99,20 +105,18 @@ program flux_feautrier
     !chi = 1.2398e4 / wave_angstrom
     !stim_factor = 1-10**(-chi*theta)
       
-    !
-    ! Do grey first 
-    !
-    absorp_coeff(:,iw) = kappa_grey
-    source_function(:,iw) = B_grey
-    omega(:,iw) = omega_grey
 
+    !
     ! Populate coefficient arrays
+    !
     call fill_center_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
     print*, ' Filled center coeffs'
     call fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
     print*, ' Filled boundary coeffs'
-        
+    
+    !
     ! solve the system of equations
+    !
     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
 
   enddo wavelength
