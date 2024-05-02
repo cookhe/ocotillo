@@ -10,7 +10,7 @@ module auxiliary
   public :: fill_center_coeffs,fill_boundary_coeffs
 
 contains
-!******************************************
+!************************************************************************************
   subroutine tridag(a,b,c,r,u)
 !
 !  Solves a tridiagonal system.
@@ -45,7 +45,7 @@ contains
     enddo
 !
   endsubroutine tridag
-!******************************************
+!************************************************************************************
   subroutine update_ghosts(f)
 !
 !  Update the ghost zones of an array
@@ -60,7 +60,7 @@ contains
     enddo
 !
   endsubroutine update_ghosts
-!******************************************
+!************************************************************************************
   subroutine der(f,df)
 !
 !  Sixth-order first derivative.
@@ -76,26 +76,26 @@ contains
                +      (f(n1+3:n2+3)-f(n1-3:n2-3)))
 !    
   endsubroutine der
-!******************************************
+!************************************************************************************
   subroutine calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
 
-  real, dimension(mz,nw) :: U
-  real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
-  real, dimension(nz) :: dU
-  real :: dz
-  integer :: iw
+    real, dimension(mz,nw) :: U
+    real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
+    real, dimension(nz) :: dU
+    real :: dz
+    integer :: iw
 !
-  do iw=1,nw
-    call update_ghosts(U(:,iw))
-    call der(U(:,iw),dU)
-    V(:,iw) = -1/absorp_coeff(:,iw) * dU / dz
+    do iw=1,nw
+      call update_ghosts(U(:,iw))
+      call der(U(:,iw),dU)
+      V(:,iw) = -1/absorp_coeff(:,iw) * dU / dz
 !
-    Ip(:,iw) = U(n1:n2,iw) + V(:,iw)
-    Im(:,iw) = U(n1:n2,iw) - V(:,iw)
-  enddo
+      Ip(:,iw) = U(n1:n2,iw) + V(:,iw)
+      Im(:,iw) = U(n1:n2,iw) - V(:,iw)
+    enddo
 !
-endsubroutine calc_auxiliaries
-!******************************************
+  endsubroutine calc_auxiliaries
+!************************************************************************************
   subroutine fill_center_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
@@ -123,9 +123,12 @@ endsubroutine calc_auxiliaries
       dd(iz) = -source_function(iz) * zeta
     enddo
 
-  end subroutine fill_center_coeffs
-  !******************************************
+    print*, ' Filled center coeffs'
+    
+  endsubroutine fill_center_coeffs
+!************************************************************************************
   subroutine fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
+    
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
     real, intent(in) :: dz
@@ -144,6 +147,23 @@ endsubroutine calc_auxiliaries
     cc(nz) = 0.
     dd(nz) = -source_function(nz) * zeta * absorp_coeff(nz)**2
 
-  end subroutine fill_boundary_coeffs
-!******************************************
+    print*, ' Filled boundary coeffs'
+    
+  endsubroutine fill_boundary_coeffs
+!************************************************************************************
+  subroutine output_data(U,V,Ip,Im)
+
+    real, dimension(mz,nw) :: U
+    real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
+
+    open(10,file="intensity.dat",status="replace",action='write')
+    do i=1,nz
+      do iw=1,nw
+        write(unit=10,FMT=*) i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
+      enddo
+    enddo
+    close(10)
+
+  endsubroutine output_data
+!************************************************************************************
   endmodule auxiliary

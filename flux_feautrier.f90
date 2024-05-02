@@ -106,35 +106,24 @@ program flux_feautrier
     !stim_factor = 1-10**(-chi*theta)
       
 
-    !
-    ! Populate coefficient arrays
-    !
+!
+! Populate coefficient arrays
+!
     call fill_center_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
-    print*, ' Filled center coeffs'
-    call fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)
-    print*, ' Filled boundary coeffs'
-    
-    !
-    ! solve the system of equations
-    !
+    call fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff(:,iw),omega(:,iw),source_function(:,iw),dz)    
+!
+! solve the system of equations
+!
     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
-
+!
   enddo wavelength
 !
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."
-
-  !put this inside a subroutine, like, calculate_auxiliaries
-
+!
   call calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
 !
-  open(10,file="intensity.dat",status="replace",action='write')
-  do i=1,nz
-    do iw=1,nw
-      write(unit=10,FMT=*) i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
-    enddo
-  enddo
-  close(10)
-  
+  call output_data(U,V,Ip,Im)
+! 
 endprogram flux_feautrier
 !********
