@@ -19,5 +19,8 @@ module grid
 
 ! Index locations of fist/last zones of computational domain 
   integer, parameter :: n1=ng+1,n2=mz-ng
-  
+
+! Stefan-Boltzmann constant
+  real :: sigma_sb=5.670374419d-5
+!  
 end module grid

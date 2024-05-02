@@ -20,7 +20,7 @@ program flux_feautrier
   real :: float_info_max=3.9085d307
 
   integer :: igrey=1,iw
-  real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
+  real :: sigma_grey
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
   real, dimension(nw) :: waves_cm,waves_angstrom
@@ -30,7 +30,7 @@ program flux_feautrier
 
   real :: start, finish
 !
-  namelist /input/ z0,z1
+  namelist /input/ z0,z1,sigma_grey
 !  
 !  Read the input namelist with the user-defined parameters. 
 !  

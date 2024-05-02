@@ -2,6 +2,7 @@
 &input
   z0 = -4717816996570149.0
   z1 = 4717816996570149.0
+  sigma_grey=0.4
 /
 &temperature_input
   eps = 0.2
