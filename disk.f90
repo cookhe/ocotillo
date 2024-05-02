@@ -41,11 +41,14 @@ contains
     close(30)
 !
     switchTemp = (1+eps) * isoTemp ! must be larger than mdiTemp
+!
+! In the future, this T will be the Athena output
+!
+    T = midTemp    
 !    
 ! Calculate the gaussian profile
 !
     Tgauss = midTemp * exp(-0.5 * z(n1:n2)**2/sigma**2)
-    T = Tgauss
 !        
 ! Choose between the gaussian profile, the floor, or the current value.
 !

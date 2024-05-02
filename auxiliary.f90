@@ -155,7 +155,7 @@ contains
   subroutine output_data(U,V,Ip,Im)
 
     real, dimension(mz,nw) :: U
-    real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
+    real, dimension(nz,nw) :: V,Ip,Im
     integer :: i,iw
 !
     open(10,file="intensity.dat",status="replace",action='write')
