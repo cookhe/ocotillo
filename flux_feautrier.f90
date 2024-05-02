@@ -89,7 +89,7 @@ program flux_feautrier
   source_function(:,greyindex) = B_grey
   omega(:,greyindex) = omega_grey
 
-  wavelength: do iw=1,nw
+  wavelength: do iw=greyindex+1,nw
     wave_cm = waves_cm(iw)
     wave_angstrom = waves_angstrom(iw)
 
