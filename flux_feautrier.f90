@@ -2,7 +2,7 @@ program flux_feautrier
 
   use auxiliary
   use grid
-  use disk, only:calc_temperature
+  use disk
 
   implicit none
 
@@ -19,18 +19,18 @@ program flux_feautrier
   integer :: overflow_limit
   real :: float_info_max=3.9085d307
 
-  integer :: igrey=1,i,iw,iz
+  integer :: igrey=1,iw
   real :: sigma_sb=5.670374419d-5,sigma_grey=0.4
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
 
   real, dimension(nw) :: waves_cm,waves_angstrom
   real :: wave_cm,wave_angstrom
 
-  real :: zeta,dz,z0,z1
+  real :: dz,z0,z1
 
   real :: start, finish
 !
-  namelist /input/ z0,z1,rho0,rho_floor,H
+  namelist /input/ z0,z1
 !  
 !  Read the input namelist with the user-defined parameters. 
 !  
@@ -39,6 +39,8 @@ program flux_feautrier
   close(20)
 !    
   overflow_limit = int(floor(log10(float_info_max)))
+!
+! Calculate the grid variables
 !
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
@@ -66,23 +68,23 @@ program flux_feautrier
   alpha_grey = 3.68e22 * T**(-3.5) *  rho
   kappa_grey = (alpha_grey+sigma_grey)*rho
   omega_grey = sigma_grey / (alpha_grey + sigma_grey)
-
-  ! Loop over wavelength
-
-  call cpu_time(start)
-  
-  !
-  ! Do grey first 
-  !
+!
+! Start the counter
+!
+  call cpu_time(start)  
+!
+! Do grey RT first 
+!
   absorp_coeff(:,igrey) = kappa_grey
   source_function(:,igrey) = B_grey
   omega(:,igrey) = omega_grey
-
-  wavelength: do iw=igrey+1,nw
+!
+! Loop over wavelengths
+!
+  wavelength: do iw=1,nw
     wave_cm = waves_cm(iw)
     wave_angstrom = waves_angstrom(iw)
-
-     
+!    
     !damping_factor = h*c/wave_cm/kb/T
     !do i=1,nz
     !   if (damping_factor(i) > overflow_limit) then
@@ -105,10 +107,16 @@ program flux_feautrier
 !
   enddo wavelength
 !
+! Finish the counter and print the wall time
+!
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."
 !
+! Calculate post-processing quantities: flux and intensities. 
+!
   call calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
+!
+! Write output
 !
   call output_data(U,V,Ip,Im)
 ! 
