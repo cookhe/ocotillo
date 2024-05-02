@@ -14,4 +14,9 @@
   sigma = 2.54d14
   midTemp = 61341
   floorTemp = 3
+
+  rho0=1d-9
+  rho_floor=1d-24
+
+  H=1.496d14  
 /

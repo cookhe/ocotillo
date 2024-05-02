@@ -2,7 +2,7 @@ program flux_feautrier
 
   use auxiliary
   use grid
-  use disk, only:temperature_gaussian
+  use disk, only:calc_temperature
 
   implicit none
 
@@ -26,7 +26,7 @@ program flux_feautrier
   real, dimension(nw) :: waves_cm,waves_angstrom
   real :: wave_cm,wave_angstrom
 
-  real :: zeta,dz,z0,z1,rho0,rho_floor,H
+  real :: zeta,dz,z0,z1
 
   real :: start, finish
 !
@@ -38,22 +38,11 @@ program flux_feautrier
   read(20,nml=input)
   close(20)
 !    
-  dz = (z1-z0)/nz
-  arrays: do i=1,nz
-   z(n1+i-1) = z0 + (i-1)*dz
-   T(i) = 65000.
-   rho(i) = rho0*exp(-.5*z(i-1+n1)**2/H**2)
-   ! Implement a desity floor
-   density_floor: if (rho(i) < rho_floor) then 
-      rho(i) = rho_floor
-   endif density_floor
-  enddo arrays
-
   overflow_limit = int(floor(log10(float_info_max)))
-  
-  ! Apply temperature profile
-  call temperature_gaussian(T,z)
-  print*,"maxval(T), minval(T)",maxval(T), minval(T)
+!
+  call calc_grid(z1,z0,z,dz)
+  call calc_density(rho,z)
+  call calc_temperature(T,z)  
 
   !n = rho*mp1
   !call hydrogen_ionization_fraction(rho,T,NHII_NHINHII)
