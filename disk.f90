@@ -20,8 +20,6 @@ contains
     read(30,nml=disk_input)
     close(30)
 
-    print*,eps,isoTemp,sigma,midTemp,floorTemp
-    
     switchTemp = (1+eps) * isoTemp ! must be larger than mdiTemp
     
     ! Caluclate the gaussian profile
