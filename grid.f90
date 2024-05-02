@@ -20,6 +20,9 @@ module grid
 ! Index locations of fist/last zones of computational domain 
   integer, parameter :: n1=ng+1,n2=mz-ng
 
+! Index to store the grey solution
+  integer, parameter :: igrey=1
+  
 ! Stefan-Boltzmann constant
   real :: sigma_sb=5.670374419d-5
 !  

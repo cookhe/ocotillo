@@ -6,28 +6,26 @@ program flux_feautrier
 
   implicit none
 
-  real, dimension(mz) :: z
-
   real, dimension(mz,nw) :: U
   real, dimension(nz,nw) :: V,Ip,Im
-  !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   real, dimension(nz,nw) :: absorp_coeff,source_function,omega
+  real, dimension(mz) :: z
+  real, dimension(nz) :: aa,bb,cc,dd
 
-  real, dimension(nz) :: aa,bb,cc,dd,kappa_p,kappa_m
-  
-  !real :: alpha_e = 0.6648e-24 ! coefficient
+  integer :: iw
   integer :: overflow_limit
 
-  integer :: igrey=1,iw
   real :: sigma_grey
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
-
   real, dimension(nw) :: waves_cm,waves_angstrom
+
   real :: wave_cm,wave_angstrom
-
   real :: dz,z0,z1
-
   real :: start, finish
+!
+  !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
+  !real, dimension(nz) :: kappa_p,kappa_m 
+  !real :: alpha_e = 0.6648e-24 ! coefficient
 !
   namelist /input/ z0,z1,sigma_grey
 !  
