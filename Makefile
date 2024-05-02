@@ -1,8 +1,8 @@
 
-FC = mpif90
+FC = mpifort
 
-#FFLAGS = -O3 -fdefault-real-8 -fdefault-double-8 -Wall -finit-real=NaN -finit-integer=-2147483648 -g -fbacktrace -fimplicit-none -fcheck=all -ffpe-trap=invalid,zero,overflow,denormal 
-FFLAGS = -fbounds-check -Wall -Wunused -O3 -fdefault-real-8 -fdefault-double-8
+FFLAGS = -O3 -fdefault-real-8 -fdefault-double-8 -Wall -finit-real=NaN -finit-integer=-2147483648 -g -fbacktrace -fimplicit-none -fcheck=all -ffpe-trap=invalid,zero,overflow,denormal 
+# FFLAGS = -fbounds-check -Wall -Wunused -O3 -fdefault-real-8 -fdefault-double-8
 
 default: compile
 
