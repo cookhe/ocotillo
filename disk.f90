@@ -2,13 +2,17 @@
 module disk
 
   use grid
-  implicit none
 
+  implicit none
+  private
+
+  public :: calc_grid,calc_density,calc_temperature
+  
   real :: eps,isoTemp,sigma,midTemp,floorTemp,switchTemp
   real :: rho0,rho_floor,H
   
-  namelist /disk_input/ eps,isoTemp,sigma,midTemp,floorTemp,&
-                        rho0,rho_floor,H
+  namelist /temperature_input/ eps,isoTemp,sigma,midTemp,floorTemp
+  namelist /density_input/ rho0,rho_floor,H
   
 contains
 !************************************************************************************
@@ -30,11 +34,10 @@ contains
     real, dimension(nz), intent(inout) :: T
     real, dimension(mz), intent(in) :: z
     real, dimension(nz) :: Tgauss
-    real :: T0
     integer :: i
 !
     open(30,file='input.in')
-    read(30,nml=disk_input)
+    read(30,nml=temperature_input)
     close(30)
 !
     switchTemp = (1+eps) * isoTemp ! must be larger than mdiTemp
@@ -42,6 +45,7 @@ contains
 ! Calculate the gaussian profile
 !
     Tgauss = midTemp * exp(-0.5 * z(n1:n2)**2/sigma**2)
+    T = Tgauss
 !        
 ! Choose between the gaussian profile, the floor, or the current value.
 !
@@ -59,8 +63,13 @@ contains
 !************************************************************************************
    subroutine calc_density(rho,z)
 !
-    real, dimension(nz), intent(inout) :: T
+    real, dimension(nz), intent(inout) :: rho
     real, dimension(mz), intent(in) :: z
+    integer :: i
+!
+    open(40,file='input.in')
+    read(40,nml=density_input)
+    close(40)
 !
     rho = rho0*exp(-.5*z(n1:n2)**2/H**2)
 !
@@ -72,6 +81,8 @@ contains
       endif
     enddo
 !
+    print*,"maxval(rho), minval(rho)",maxval(rho), minval(rho)
+!    
   endsubroutine calc_density
 !************************************************************************************
 endmodule disk
