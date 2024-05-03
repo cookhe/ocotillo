@@ -1,7 +1,7 @@
 ! Module for disk model generation/manipulation.
 module disk
 
-  use grid
+  use common
 
   implicit none
   private

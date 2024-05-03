@@ -1,6 +1,6 @@
 module auxiliary
 
-  use grid
+  use common
 
   implicit none
   private

@@ -1,7 +1,7 @@
 program flux_feautrier
 
   use auxiliary
-  use grid
+  use common
   use disk
 
   implicit none
