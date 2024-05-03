@@ -1,4 +1,4 @@
-module grid
+module common
 
   implicit none
 
@@ -28,4 +28,4 @@ module grid
 !  
   real :: float_info_max=3.9085d307
 !
-end module grid
+endmodule common
