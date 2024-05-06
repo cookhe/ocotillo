@@ -16,3 +16,5 @@
   rho_floor=1d-24
   H=1.496d14
 /
+&gas_state_input
+  fully_ionized_T=20000
