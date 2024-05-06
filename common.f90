@@ -27,5 +27,8 @@ module common
   real :: sigma_sb=5.670374419d-5
 !  
   real :: float_info_max=3.9085d307
+
+! Mass of proton and inverse
+  real:: mp=1.6726231d-24,mp1=1/mp
 !
 endmodule common
