@@ -3,6 +3,7 @@ program flux_feautrier
   use auxiliary
   use common
   use disk
+  use gas_state
 
   implicit none
 
@@ -16,8 +17,10 @@ program flux_feautrier
   integer :: overflow_limit
 
   real :: sigma_grey
-  real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
+  real, dimension(nz) :: T,rho,n,B_grey,alpha_grey,kappa_grey,omega_grey
   real, dimension(nw) :: waves_cm,waves_angstrom
+
+  real, dimension(nz) :: NHII_NHINHII
 
   real :: wave_cm,wave_angstrom
   real :: dz,z0,z1
@@ -41,11 +44,14 @@ program flux_feautrier
 !
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
-  call calc_temperature(T,z)  
-
-  !n = rho*mp1
-  !call hydrogen_ionization_fraction(rho,T,NHII_NHINHII)
-
+  ! print*, ' rho=', rho
+  ! rho = merge(1d-10,rho,rho<1d-10)
+  ! print*, ' rho=', rho
+  call calc_temperature(T,z)
+  call hydrogen_ion_frac(rho,T,NHII_NHINHII)
+  print*,NHII_NHINHII
+  
+  ! n = rho*mp1
   !nHII = NHII_NHINHII * n
   !nHI = n - nHII
   !ne = nHII
