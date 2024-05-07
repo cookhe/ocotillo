@@ -9,7 +9,7 @@
   isoTemp = 64857.04298198191
   sigma = 2.54d14
   midTemp = 61341
-  floorTemp = 3
+  floorTemp = 2000
 /
 &density_input
   rho0=1d-9
@@ -17,4 +17,5 @@
   H=1.496d14
 /
 &gas_state_input
-  fully_ionized_T=20000
+  fully_ionized_T = 2.d4
+/
