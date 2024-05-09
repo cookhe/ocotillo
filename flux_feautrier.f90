@@ -44,12 +44,8 @@ program flux_feautrier
 !
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
-  ! print*, ' rho=', rho
-  ! rho = merge(1d-10,rho,rho<1d-10)
-  ! print*, ' rho=', rho
   call calc_temperature(T,z)
   call hydrogen_ion_frac(rho,T,NHII_NHINHII)
-  print*,NHII_NHINHII
   
   ! n = rho*mp1
   !nHII = NHII_NHINHII * n

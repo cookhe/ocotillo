@@ -18,8 +18,12 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   real, dimension(nz), intent(in) :: rho,T
   real, dimension(nz), intent(out) :: NHII_NHINHII
   real, dimension(nz) :: constants,niine_ni,C,index
-  integer :: i
+  integer :: i,iu
   
+  open(newunit=iu,file='input.in')
+  read(iu,nml=gas_state_input)
+  close(iu)
+
   print*, 'fully_ionized_T', fully_ionized_T
   ! calculate the Saha equation (relative fraction of adjacent ions)
   constants = ((sqrt(2*pi*me*k_cgs*T)/h_planck)**3)
@@ -37,12 +41,12 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   ! This is appropriate for our domain where the density is always less than
   ! ~2e-9 g cm^-3. Would not be appropriate for higher densities.
   do i=1,nz
-    print*, T(i), fully_ionized_T
+    ! print*, T(i), fully_ionized_T
     if (T(i) > fully_ionized_T) then 
       NHII_NHINHII(i)=1.
     endif
   enddo
-  print*, NHII_NHINHII
+  ! print*, NHII_NHINHII
   ! NHII_NHINHII = merge(1.0, NHII_NHINHII, T>fully_ionized_T)
   
 end subroutine hydrogen_ion_frac
