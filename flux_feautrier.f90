@@ -13,14 +13,15 @@ program flux_feautrier
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
 
-  integer :: iw
+  integer :: iw,i
   integer :: overflow_limit
 
   real :: sigma_grey
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
   real, dimension(nw) :: waves_cm,waves_angstrom
 
-  real, dimension(nz) :: NHII_NHINHII
+  real, dimension(nz) :: NHII_NHINHII,n,nHII,nHI,ne,ionization_factor
+  real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
 
   real :: wave_cm,wave_angstrom
   real :: dz,z0,z1
@@ -28,7 +29,7 @@ program flux_feautrier
 !
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   !real, dimension(nz) :: kappa_p,kappa_m 
-  !real :: alpha_e = 0.6648e-24 ! coefficient
+  real :: alpha_e = 0.6648e-24 ! coefficient
 !
   namelist /input/ z0,z1,sigma_grey
 !  
@@ -46,22 +47,22 @@ program flux_feautrier
   call calc_density(rho,z)
   call calc_temperature(T,z)
   call hydrogen_ion_frac(rho,T,NHII_NHINHII)
-  
-  ! n = rho*mp1
-  !nHII = NHII_NHINHII * n
-  !nHI = n - nHII
-  !ne = nHII
 
-  !do i=1,nz
-  !  if (nHI(i) /= 0) then
-  !    ionization_factor[i] = 1/(1 + nHII[i]/nHI[i])
-  !  endif
-  !enddo
+  n = rho*mp1
+  nHII = NHII_NHINHII * n
+  nHI = n - nHII
+  ne = nHII
+
+  do i=1,nz
+    if (nHI(i) /= 0) then
+      ionization_factor(i) = 1./(1. + nHII(i)/nHI(i))
+    endif
+  enddo
   
-  !e_scatter = alpha_e * (nHII / n)  
-  !theta = 5040./T
-  !electron_pressure = ne * kb * T
-  !hm_bf_factor = 4.158e-10 * electron_pressure * theta**(5./2) * 10**(0.754 * theta)
+  e_scatter = alpha_e * (nHII / n)  
+  theta = 5040./T
+  electron_pressure = ne * k_cgs * T
+  hm_bf_factor = 4.158e-10 * electron_pressure * theta**(5./2) * 10**(0.754 * theta)
   
   B_grey = sigma_sb*T**4
   alpha_grey = 3.68e22 * T**(-3.5) *  rho
@@ -84,7 +85,10 @@ program flux_feautrier
     wave_cm = waves_cm(iw)
     wave_angstrom = waves_angstrom(iw)
 !    
-    !damping_factor = h*c/wave_cm/kb/T
+    !call source_function() !output: source_function
+    
+    ! These lines below go inside call source_function:
+    !damping_factor = h*c/(wave_cm*kb*T)
     !do i=1,nz
     !   if (damping_factor(i) > overflow_limit) then
     !      damping_factor(i) = overflow_limit
@@ -92,8 +96,33 @@ program flux_feautrier
     !enddo
     !source_function(:,iw) = 2*h*c**2/wave_cm**5 * 1/(exp(damping_factor)-1)
     
+    !call calc_albedo_and_opacity() ! output: omega, and absorp_coeff
+
+    ! next call kappa_rad, which will be used for albedo and absorption
+    
     !chi = 1.2398e4 / wave_angstrom
     !stim_factor = 1-10**(-chi*theta)
+    !
+    !kappa_H_bf[:,iwave]  = specb.xsec_bfHI(np.array([wave_angstrom]), T, m=6)
+    !kappa_H_bf[:,iwave] *= stim_factor * ionization_factor
+    !kappa_H_ff[:,iwave]   = specb.xsec_ffH(np.array(wave_angstrom), T)
+    !kappa_H_ff[:,iwave]  *= stim_factor * ionization_factor
+    !
+    !alpha_Hmbf          = specb.xsec_bfHminus(np.array([wave_angstrom]))
+    !kappa_Hm_bf[:,iwave]  = hm_bf_factor * alpha_Hmbf
+    !kappa_Hm_bf[:,iwave] *= stim_factor * ionization_factor
+    !
+    !kappa_Hm_ff[:,iwave]  = specb.xsec_ffHminus(ne, np.array([wave_angstrom]), T)
+    !kappa_Hm_ff[:,iwave] *= ionization_factor
+
+    !kappa_rad[:,iwave] = kappa_H_bf[:,iwave] + kappa_H_ff[:,iwave] + kappa_Hm_bf[:,iwave] + kappa_Hm_ff[:,iwave]
+    !kappa_rad[:,iwave] += e_scatter
+
+    !omega[:,iwave] = (e_scatter) / (kappa_rad[:,iwave])
+    !kappa_rad[:,iwave] /= mp
+    
+    !absorp_coeff[:,iwave] = kappa_rad[:,iwave] * rho
+    
 !
 ! Populate coefficient arrays
 !
