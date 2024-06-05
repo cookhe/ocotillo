@@ -1,7 +1,7 @@
 ! Module for disk model generation/manipulation.
-module disk
+module Disk
 
-  use common
+  use Common
 
   implicit none
   private
@@ -88,4 +88,4 @@ contains
 !    
   endsubroutine calc_density
 !************************************************************************************
-endmodule disk
+endmodule Disk

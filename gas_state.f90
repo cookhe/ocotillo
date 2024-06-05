@@ -1,9 +1,8 @@
 ! Module to calculate the gas state
-module gas_state
+module GasState
 
-  use common
-
-
+  use Common
+  
   implicit none
   private
 
@@ -49,6 +48,6 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   ! print*, NHII_NHINHII
   ! NHII_NHINHII = merge(1.0, NHII_NHINHII, T>fully_ionized_T)
   
-end subroutine hydrogen_ion_frac
+endsubroutine hydrogen_ion_frac
 
-end module gas_state
+endmodule GasState

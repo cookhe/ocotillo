@@ -1,6 +1,6 @@
-module auxiliary
+module Auxiliary
 
-  use common
+  use Common
 
   implicit none
   private
@@ -168,4 +168,4 @@ contains
 
   endsubroutine output_data
 !************************************************************************************
-  endmodule auxiliary
+  endmodule Auxiliary

@@ -1,4 +1,4 @@
-module common
+module Common
 
   implicit none
 
@@ -47,4 +47,4 @@ module common
 ! Ionization potential energy for Hydrogen in eV
   real :: hydrogen_ionization_eV = 13.6
 !
-endmodule common
+endmodule Common

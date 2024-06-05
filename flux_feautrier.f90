@@ -1,9 +1,9 @@
 program flux_feautrier
 
-  use auxiliary
-  use common
-  use disk
-  use gas_state
+  use Auxiliary
+  use Common
+  use Disk
+  use GasState
 
   implicit none
 
