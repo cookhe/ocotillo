@@ -47,4 +47,6 @@ module Common
 ! Ionization potential energy for Hydrogen in eV
   real :: hydrogen_ionization_eV = 13.6
 !
+  real :: c_light_cgs = 2.99792458d10
+!  
 endmodule Common

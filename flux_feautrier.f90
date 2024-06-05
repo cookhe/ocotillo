@@ -85,17 +85,8 @@ program flux_feautrier
     wave_cm = waves_cm(iw)
     wave_angstrom = waves_angstrom(iw)
 !    
-    !call source_function() !output: source_function
-    
-    ! These lines below go inside call source_function:
-    !damping_factor = h*c/(wave_cm*kb*T)
-    !do i=1,nz
-    !   if (damping_factor(i) > overflow_limit) then
-    !      damping_factor(i) = overflow_limit
-    !   endif
-    !enddo
-    !source_function(:,iw) = 2*h*c**2/wave_cm**5 * 1/(exp(damping_factor)-1)
-    
+    call calc_source_function(wave_cm,source_function,iw,overflow_limit) !output: source_function
+!     
     !call calc_albedo_and_opacity() ! output: omega, and absorp_coeff
 
     ! next call kappa_rad, which will be used for albedo and absorption
