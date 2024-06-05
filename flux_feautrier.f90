@@ -17,7 +17,7 @@ program flux_feautrier
   integer :: overflow_limit
 
   real :: sigma_grey
-  real, dimension(nz) :: T,rho,n,B_grey,alpha_grey,kappa_grey,omega_grey
+  real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
   real, dimension(nw) :: waves_cm,waves_angstrom
 
   real, dimension(nz) :: NHII_NHINHII
