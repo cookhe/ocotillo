@@ -6,7 +6,7 @@ module GasState
   implicit none
   private
 
-  public :: hydrogen_ion_frac
+  public :: hydrogen_ion_frac,solve_gas_state
 
   real :: fully_ionized_T
   namelist /gas_state_input/ fully_ionized_T
@@ -23,7 +23,6 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   read(iu,nml=gas_state_input)
   close(iu)
 
-  print*, 'fully_ionized_T', fully_ionized_T
   ! calculate the Saha equation (relative fraction of adjacent ions)
   constants = ((sqrt(2*pi*me*k_cgs*T)/h_planck)**3)
   index = hydrogen_ionization_eV/(k_eV*T)
@@ -49,5 +48,25 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   ! NHII_NHINHII = merge(1.0, NHII_NHINHII, T>fully_ionized_T)
   
 endsubroutine hydrogen_ion_frac
+!******************************************
+subroutine solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
+  real, dimension(nz), intent(in) :: rho,NHII_NHINHII
+  real, dimension(nz), intent(out) :: n,nHI,nHII,ne,ionization_factor
+  integer :: i
+
+  n = rho*mp1
+  nHII = NHII_NHINHII * n
+  nHI = n - nHII
+  ne = nHII
+  
+  do i=1,nz
+    if (nHI(i) /= 0) then
+      ionization_factor(i) = 1./(1. + nHII(i)/nHI(i))
+    else ! set to zero.
+      ionization_factor(i) = 0.
+    endif
+  enddo
+
+endsubroutine solve_gas_state
 
 endmodule GasState

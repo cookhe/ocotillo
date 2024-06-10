@@ -52,17 +52,7 @@ program flux_feautrier
   call calc_density(rho,z)
   call calc_temperature(T,z)
   call hydrogen_ion_frac(rho,T,NHII_NHINHII)
-  
-  n = rho*mp1
-  nHII = NHII_NHINHII * n
-  nHI = n - nHII
-  ne = nHII
-
-  do i=1,nz
-    if (nHI(i) /= 0) then
-      ionization_factor(i) = 1./(1. + nHII(i)/nHI(i))
-    endif
-  enddo
+  call solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
   
   e_scatter = alpha_e * (nHII / n)  
   theta = 5040./T
@@ -115,11 +105,15 @@ program flux_feautrier
     !kappa_rad[:,iwave] = kappa_H_bf[:,iwave] + kappa_H_ff[:,iwave] + kappa_Hm_bf[:,iwave] + kappa_Hm_ff[:,iwave]
     !kappa_rad[:,iwave] += e_scatter
 
+    ! placeholder until albedo properly calculated
+    omega(:,iw) = omega_grey
     !omega[:,iwave] = (e_scatter) / (kappa_rad[:,iwave])
     !kappa_rad[:,iwave] /= mp
     
+    ! placeholder until absorption coefficient properly calculated
+    absorp_coeff(:,iw) = kappa_grey
     !absorp_coeff[:,iwave] = kappa_rad[:,iwave] * rho
-    
+       
 !
 ! Populate coefficient arrays
 !
@@ -129,6 +123,8 @@ program flux_feautrier
 ! Solve the system of equations
 !
     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
+    print*, 'min/max(U)', minval(U(n1:n2,iw)), maxval(U(n1:n2,iw))
+    ! print*, source_function(:,iw)
 !
   enddo wavelength
 !
