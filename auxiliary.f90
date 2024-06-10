@@ -9,6 +9,7 @@ module Auxiliary
   public :: calc_auxiliaries
   public :: fill_center_coeffs,fill_boundary_coeffs
   public :: output_data
+  public :: calc_source_function
 
 contains
 !************************************************************************************
@@ -168,18 +169,18 @@ contains
 
   endsubroutine output_data
 !************************************************************************************
-  subroutine calc_source_function(wave_cm,source_function,iw,overflow_limit)
+  subroutine calc_source_function(wave_cm,T,source_function,iw,log_overflow_limit)
 
-    integer :: iw,i
-    real :: wave_cm,overflow_limit
+    integer :: iw,i,log_overflow_limit
+    real, intent(in) :: wave_cm
     real, dimension(nz) :: T,damping_factor
     real, dimension(nz,nw) :: source_function
     
     damping_factor = h_planck*c_light_cgs/(wave_cm*k_cgs*T)
     do i=1,nz
-       if (damping_factor(i) > overflow_limit) then
-          damping_factor(i) = overflow_limit
-       endif
+      if (damping_factor(i) > log_overflow_limit) then
+        damping_factor(i) = log_overflow_limit
+      endif
     enddo
     
     source_function(:,iw) = 2*h_planck*c_light_cgs**2/wave_cm**5 * 1/(exp(damping_factor)-1)

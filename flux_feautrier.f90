@@ -14,7 +14,7 @@ program flux_feautrier
   real, dimension(nz) :: aa,bb,cc,dd
 
   integer :: iw,i
-  integer :: overflow_limit
+  integer :: log_overflow_limit
 
   real :: sigma_grey
   real, dimension(nz) :: T,rho,B_grey,alpha_grey,kappa_grey,omega_grey
@@ -39,15 +39,20 @@ program flux_feautrier
   read(20,nml=input)
   close(20)
 !    
-  overflow_limit = int(floor(log10(float_info_max)))
+  log_overflow_limit = int(floor(log10(float_info_max)))
 !
 ! Calculate the grid variables
 !
+  do iw=1,nw
+    waves_angstrom(iw) = w1 + ((iw-1)*dw)
+  enddo
+  print*, 'waves_angstrom', waves_angstrom
+  waves_cm = waves_angstrom*1d-8
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
   call calc_temperature(T,z)
   call hydrogen_ion_frac(rho,T,NHII_NHINHII)
-
+  
   n = rho*mp1
   nHII = NHII_NHINHII * n
   nHI = n - nHII
@@ -83,9 +88,10 @@ program flux_feautrier
 !
   wavelength: do iw=1,nw
     wave_cm = waves_cm(iw)
+    ! print*, 'waves_cm',waves_cm
     wave_angstrom = waves_angstrom(iw)
 !    
-    call calc_source_function(wave_cm,source_function,iw,overflow_limit) !output: source_function
+    call calc_source_function(wave_cm,T,source_function,iw,log_overflow_limit) !output: source_function
 !     
     !call calc_albedo_and_opacity() ! output: omega, and absorp_coeff
 

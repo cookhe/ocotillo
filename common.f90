@@ -5,7 +5,10 @@ module Common
   public
 
 ! Number of wavelengths
-  integer, parameter :: nw=2,w1=3000,w2=5000
+  integer, parameter :: nw=3
+  
+! starting, ending, and delta wavelength for grid in angstroms
+  real, parameter :: w1=3000.,w2=5000.,dw=(w2-w1)/nw
 
 ! Number of grid points in computational domain
   integer, parameter :: nz=640
