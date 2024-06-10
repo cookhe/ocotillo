@@ -5,7 +5,7 @@ module Common
   public
 
 ! Number of wavelengths
-  integer, parameter :: nw=1
+  integer, parameter :: nw=2,w1=3000,w2=5000
 
 ! Number of grid points in computational domain
   integer, parameter :: nz=640
