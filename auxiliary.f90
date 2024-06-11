@@ -169,12 +169,12 @@ contains
 
   endsubroutine output_data
 !************************************************************************************
-  subroutine calc_source_function(wave_cm,T,source_function,iw,log_overflow_limit)
+  subroutine calc_source_function(wave_cm,T,source_function,log_overflow_limit)
 
-    integer :: iw,i,log_overflow_limit
+    integer :: i,log_overflow_limit
     real, intent(in) :: wave_cm
     real, dimension(nz) :: T,damping_factor
-    real, dimension(nz,nw) :: source_function
+    real, dimension(nz) :: source_function
     
     damping_factor = h_planck*c_light_cgs/(wave_cm*k_cgs*T)
     do i=1,nz
@@ -183,7 +183,7 @@ contains
       endif
     enddo
     
-    source_function(:,iw) = 2*h_planck*c_light_cgs**2/wave_cm**5 * 1/(exp(damping_factor)-1)
+    source_function = 2*h_planck*c_light_cgs**2/wave_cm**5 * 1/(exp(damping_factor)-1)
     
   endsubroutine calc_source_function
 !************************************************************************************    
