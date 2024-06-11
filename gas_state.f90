@@ -6,14 +6,15 @@ module GasState
   implicit none
   private
 
-  public :: hydrogen_ion_frac,solve_gas_state
+  public :: calc_hydrogen_ion_frac,solve_gas_state
+  public :: calc_electron_pressure
 
   real :: fully_ionized_T
   namelist /gas_state_input/ fully_ionized_T
   
 contains
 !******************************************
-subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
+subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   real, dimension(nz), intent(in) :: rho,T
   real, dimension(nz), intent(out) :: NHII_NHINHII
   real, dimension(nz) :: constants,niine_ni,C,index
@@ -47,7 +48,7 @@ subroutine hydrogen_ion_frac(rho,T,NHII_NHINHII)
   ! print*, NHII_NHINHII
   ! NHII_NHINHII = merge(1.0, NHII_NHINHII, T>fully_ionized_T)
   
-endsubroutine hydrogen_ion_frac
+endsubroutine calc_hydrogen_ion_frac
 !******************************************
 subroutine solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
   real, dimension(nz), intent(in) :: rho,NHII_NHINHII
@@ -68,5 +69,14 @@ subroutine solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
   enddo
 
 endsubroutine solve_gas_state
+
+! Subroune for electron pressure
+subroutine calc_electron_pressure(ne, T, electron_pressure)
+  real, intent(in), dimension(nz) :: ne, T
+  real, intent(out), dimension(nz) :: electron_pressure
+
+  electron_pressure = ne * k_cgs * T
+  
+endsubroutine calc_electron_pressure
 
 endmodule GasState

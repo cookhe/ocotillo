@@ -4,6 +4,7 @@ program flux_feautrier
   use Common
   use Disk
   use GasState
+  use ContinuousOpacity
 
   implicit none
 
@@ -13,7 +14,7 @@ program flux_feautrier
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
 
-  integer :: iw,i
+  integer :: iw
   integer :: log_overflow_limit
 
   real :: sigma_grey
@@ -22,6 +23,7 @@ program flux_feautrier
 
   real, dimension(nz) :: NHII_NHINHII,n,nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
+  real, dimension(nz) :: stim_factor
 
   real :: wave_cm,wave_angstrom
   real :: dz,z0,z1
@@ -29,7 +31,6 @@ program flux_feautrier
 !
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   !real, dimension(nz) :: kappa_p,kappa_m 
-  real :: alpha_e = 0.6648e-24 ! coefficient
 !
   namelist /input/ z0,z1,sigma_grey
 !  
@@ -51,12 +52,12 @@ program flux_feautrier
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
   call calc_temperature(T,z)
-  call hydrogen_ion_frac(rho,T,NHII_NHINHII)
+  call calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   call solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
-  
-  e_scatter = alpha_e * (nHII / n)  
+  call calc_electron_pressure(ne,T,electron_pressure)
+  call calc_electron_thomson_scattering(n,nHII,e_scatter)
+
   theta = 5040./T
-  electron_pressure = ne * k_cgs * T
   hm_bf_factor = 4.158e-10 * electron_pressure * theta**(5./2) * 10**(0.754 * theta)
   
   B_grey = sigma_sb*T**4
@@ -82,14 +83,13 @@ program flux_feautrier
     wave_angstrom = waves_angstrom(iw)
 !    
     call calc_source_function(wave_cm,T,source_function,iw,log_overflow_limit) !output: source_function
-!     
-    !call calc_albedo_and_opacity() ! output: omega, and absorp_coeff
-
-    ! next call kappa_rad, which will be used for albedo and absorption
     
-    !chi = 1.2398e4 / wave_angstrom
-    !stim_factor = 1-10**(-chi*theta)
-    !
+    call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
+!   
+    !call calc_albedo_and_opacity() ! output: omega, and absorp_coeff
+!
+    ! next call kappa_rad, which will be used for albedo and absorption
+  !
     !kappa_H_bf[:,iwave]  = specb.xsec_bfHI(np.array([wave_angstrom]), T, m=6)
     !kappa_H_bf[:,iwave] *= stim_factor * ionization_factor
     !kappa_H_ff[:,iwave]   = specb.xsec_ffH(np.array(wave_angstrom), T)
