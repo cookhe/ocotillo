@@ -39,10 +39,10 @@ module Common
   real :: me=9.1093837015e-28
 
 ! Planck constant
-  real :: h_planck=6.62607015e-27
+  real, parameter :: h_planck=6.62607015e-27
 
 ! Pi
-  real :: pi=4*atan(1.0)
+  real, parameter :: pi=4*atan(1.0)
 
 ! Boltzmann constant in erg/K and eV/K
   real :: k_cgs=1.380649e-16,k_eV=8.617333262145179e-05
@@ -50,6 +50,16 @@ module Common
 ! Ionization potential energy for Hydrogen in eV
   real :: hydrogen_ionization_eV = 13.6
 !
-  real :: c_light_cgs = 2.99792458d10
+  real, parameter :: c_light_cgs = 2.99792458d10
+!
+  real :: RydbergEnergy = 2.1798741d-11
+!
+  real, parameter :: e_electron_cgs  = 4.8032068e-10 ![esu]: charge
+!  
+  real, parameter :: me_cgs = 9.1093897e-28 ! electron mass cgs
+!
+  real :: log10e = log10(exp(1.))
+  real, parameter :: Rcm = 2 * pi**2 * me_cgs * e_electron_cgs**4 / (h_planck**3 * c_light_cgs)
+  real, parameter :: Iev = h_planck*c_light_cgs*Rcm * 6.2419e+11 ! convert to eV
 !  
 endmodule Common
