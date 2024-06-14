@@ -32,10 +32,12 @@ program flux_feautrier
   real :: dz,z0,z1
   real :: start, finish
 !
+  logical :: lgrey=.false.
+!
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   !real, dimension(nz) :: kappa_p,kappa_m 
 !
-  namelist /input/ z0,z1,sigma_grey
+  namelist /input/ z0,z1,sigma_grey, lgrey
 !  
 !  Read the input namelist with the user-defined parameters. 
 !  
@@ -66,12 +68,12 @@ program flux_feautrier
 !
   call cpu_time(start)  
 !
-! Do grey RT first 
+! Do a sanity check for grey RT
 !
-  !call grey_parameters(rho,T,sigma_grey,B_grey,alpha_grey,kappa_grey,omega_grey)
-  !absorp_coeff(:,igrey) = kappa_grey
-  !source_function = B_grey
-  !omega(:,igrey) = omega_grey
+  if (lgrey.and.(nw /= 1)) then
+    print*,"For Grey RT use only one wavelength. Switch nw=1 in commons.f90"
+    stop
+  endif
 !
 ! Loop over wavelengths
 !
@@ -80,11 +82,14 @@ program flux_feautrier
     print*, 'waves_cm',waves_cm
     wave_angstrom = waves_angstrom(iw)
 !    
-    call calc_source_function(wave_cm,T,source_function,log_overflow_limit) !output: source_function
-    call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
-
-    call calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
-         T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+    if (lgrey) then
+      call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
+    else
+      call calc_source_function(wave_cm,T,source_function,log_overflow_limit) !output: source_function
+      call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
+      call calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
+           T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+    endif
 !
 ! Populate coefficient arrays
 !
