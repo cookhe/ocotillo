@@ -85,7 +85,7 @@ program flux_feautrier
     
     call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
 !   
-    call calc_opacity_and_albedo(e_scatter,rho,T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+    call calc_opacity_and_albedo(e_scatter,rho,ne,T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
 !
 ! Populate coefficient arrays
 !

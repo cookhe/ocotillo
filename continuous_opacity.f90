@@ -52,26 +52,23 @@ contains
 
   endsubroutine calc_hydrogen_stimulated_emission
 !******************************************
-  subroutine calc_opacity_and_albedo(e_scatter,rho,temp,wave_angstrom,&
+  subroutine calc_opacity_and_albedo(e_scatter,rho,ne,temp,wave_angstrom,&
        hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, temp
+    real, dimension(nz) :: e_scatter,rho, temp, ne
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     real :: wave_angstrom
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff
     
-    intent(in)   :: e_scatter,rho,temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
+    intent(in)   :: e_scatter,rho,ne,temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
-
-    !kappa_Hm_ff  = specb.xsec_ffHminus(ne, np.array([wave_angstrom]), T)
-    !kappa_Hm_ff *= ionization_factor
 
     call calc_kappa_H_bf (wave_angstrom, temp, stim_factor * ionization_factor,  kappa_H_bf)
     call calc_kappa_H_ff (wave_angstrom, temp, stim_factor * ionization_factor,  kappa_H_ff)
     call calc_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, kappa_Hm_bf)
-    !call calc_kappa_Hm_ff()
+    call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
     
     kappa_rad = kappa_H_bf + kappa_H_ff + kappa_Hm_bf + kappa_Hm_ff + e_scatter
 
@@ -208,6 +205,44 @@ contains
     endif
 !
   endsubroutine  calc_kappa_Hm_bf
+!******************************************  
+  subroutine calc_kappa_Hm_ff(ne, waves, temp, factor, kappa_Hm_ff)
+!
+!    """H- ion free-free interaction cross section per HI per unit                                 
+!    electron pressure.                                                                            
+!    """
+    real, dimension(nz) :: ne,temp,kappa_Hm_ff,theta,factor,flam
+    real, dimension(3,5) :: b
+    real, dimension(3) :: f
+    real :: k,waves
+    integer i,j
+!    
+    intent(in) :: ne,waves,temp
+    intent(out) :: kappa_Hm_ff
+!
+    k = k_cgs  ! erg K^-1  - Boltzmann constant                                            
+    ! fit coefficients
+    
+    b = transpose(reshape(                                   &
+         (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
+         +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
+         -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
+         (/ size(b, 2), size(b, 1) /)))
+
+    do i=1,3
+      f(i)=0.
+      do j=1,5
+        f(i) = f(i) + log10(waves)**(j-1) * b(i,j)
+      enddo
+    enddo
+
+    theta = 5040./temp
+
+    flam = f(1) + f(2)*log10(theta) + f(3)*log10(theta)**2 - 26
+
+    kappa_Hm_ff = factor * ne * k * temp * 10**(flam)
+
+  endsubroutine calc_kappa_Hm_ff
 !******************************************  
   subroutine gaunt(n, waves, gaunt_factor)
 !
