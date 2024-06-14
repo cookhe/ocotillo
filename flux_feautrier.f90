@@ -11,7 +11,7 @@ program flux_feautrier
 
   real, dimension(mz,nw) :: U
   real, dimension(nz,nw) :: V,Ip,Im
-  real, dimension(nz,nw) :: absorp_coeff,omega
+  real, dimension(nz,nw) :: absorp_coeff
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
 
@@ -21,7 +21,7 @@ program flux_feautrier
   real :: sigma_grey
   real, dimension(nz) :: T,rho
   real, dimension(nz) :: opacity, albedo
-  real, dimension(nz) :: B_grey,alpha_grey,kappa_grey,omega_grey
+  !real, dimension(nz) :: B_grey,alpha_grey,kappa_grey,omega_grey
   real, dimension(nw) :: waves_cm,waves_angstrom
 
   real, dimension(nz) :: NHII_NHINHII,n,nHII,nHI,ne,ionization_factor
@@ -61,8 +61,6 @@ program flux_feautrier
   e_scatter    = get_electron_thomson_scattering(n,nHII)
   theta        = get_theta(T)
   hm_bf_factor = get_hydrogen_ion_bound_free(electron_pressure,theta)
-
-  call grey_parameters(rho,T,sigma_grey,B_grey,alpha_grey,kappa_grey,omega_grey)
 !
 ! Start the counter
 !
@@ -70,22 +68,23 @@ program flux_feautrier
 !
 ! Do grey RT first 
 !
-  absorp_coeff(:,igrey) = kappa_grey
-  source_function = B_grey
-  omega(:,igrey) = omega_grey
+  !call grey_parameters(rho,T,sigma_grey,B_grey,alpha_grey,kappa_grey,omega_grey)
+  !absorp_coeff(:,igrey) = kappa_grey
+  !source_function = B_grey
+  !omega(:,igrey) = omega_grey
 !
 ! Loop over wavelengths
 !
   wavelength: do iw=1,nw
     wave_cm = waves_cm(iw)
-    ! print*, 'waves_cm',waves_cm
+    print*, 'waves_cm',waves_cm
     wave_angstrom = waves_angstrom(iw)
 !    
     call calc_source_function(wave_cm,T,source_function,log_overflow_limit) !output: source_function
-    
     call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
-!   
-    call calc_opacity_and_albedo(e_scatter,rho,ne,T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+
+    call calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
+         T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
 !
 ! Populate coefficient arrays
 !
@@ -96,10 +95,8 @@ program flux_feautrier
 !
     call tridag(aa, bb, cc, dd, U(n1:n2,iw))
     print*, 'min/max(U)', minval(U(n1:n2,iw)), maxval(U(n1:n2,iw))
-    ! print*, source_function(:,iw)
 !
     absorp_coeff(:,iw)=opacity
-    omega(:,iw)=albedo
 !
  enddo wavelength
 !
@@ -107,6 +104,8 @@ program flux_feautrier
 !
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."
+  print*,"Execution time =",(finish-start)/(nz*nw)*1e6,&
+       " micro-seconds per frequency point per mesh point." 
 !
 ! Calculate post-processing quantities: flux and intensities. 
 !
