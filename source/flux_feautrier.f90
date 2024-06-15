@@ -41,7 +41,7 @@ program flux_feautrier
 !  
 !  Read the input namelist with the user-defined parameters. 
 !  
-  open(20,file='input.in')
+  open(20,file='./input.in')
   read(20,nml=input)
   close(20)
 !    
@@ -118,6 +118,7 @@ program flux_feautrier
 !
 ! Write output
 !
+  call output_grid(z)
   call output_data(U,V,Ip,Im)
 ! 
 endprogram flux_feautrier

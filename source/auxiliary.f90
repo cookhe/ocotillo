@@ -8,7 +8,7 @@ module Auxiliary
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries
   public :: fill_center_coeffs,fill_boundary_coeffs
-  public :: output_data
+  public :: output_data,output_grid
   public :: calc_source_function
 
 contains
@@ -159,7 +159,7 @@ contains
     real, dimension(nz,nw) :: V,Ip,Im
     integer :: i,iw
 !
-    open(10,file="intensity.dat",status="replace",action='write')
+    open(10,file="data/intensity.dat",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
         write(unit=10,FMT=*) i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
@@ -169,6 +169,19 @@ contains
 
   endsubroutine output_data
 !************************************************************************************
+  subroutine output_grid(z)
+
+    real, dimension(mz) :: z
+    integer :: i
+!
+    open(15,file="data/grid.dat",status="replace",action='write')
+    do i=1,nz
+      write(unit=15,FMT=*) i,z(n1+i-1)
+    enddo
+    close(15)
+
+  endsubroutine output_grid
+!************************************************************************************  
   subroutine calc_source_function(wave_cm,T,source_function,log_overflow_limit)
 
     integer :: i,log_overflow_limit

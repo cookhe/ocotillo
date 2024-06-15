@@ -5,7 +5,7 @@ module Common
   public
 
 ! Number of wavelengths
-  integer, parameter :: nw=3
+  integer, parameter :: nw=1
   
 ! starting, ending, and delta wavelength for grid in angstroms
   real, parameter :: w1=3000.,w2=5000.,dw=(w2-w1)/nw

@@ -20,7 +20,7 @@ subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   real, dimension(nz) :: constants,niine_ni,C,index
   integer :: i,iu
   
-  open(newunit=iu,file='input.in')
+  open(newunit=iu,file='./input.in')
   read(iu,nml=gas_state_input)
   close(iu)
 

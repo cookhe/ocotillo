@@ -36,7 +36,7 @@ contains
     real, dimension(nz) :: Tgauss
     integer :: i
 !
-    open(30,file='input.in')
+    open(30,file='./input.in')
     read(30,nml=temperature_input)
     close(30)
 !
@@ -70,7 +70,7 @@ contains
     real, dimension(mz), intent(in) :: z
     integer :: i
 !
-    open(40,file='input.in')
+    open(40,file='./input.in')
     read(40,nml=density_input)
     close(40)
 !
