@@ -4,7 +4,7 @@ module Common
 
   public
 
-  include 'resolution.inc'
+  include '../resolution.inc'
 !
 ! For arrays that need ghost zones
 ! Number of ghost zones
