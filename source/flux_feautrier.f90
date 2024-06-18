@@ -31,7 +31,7 @@ program flux_feautrier
   real :: wave_cm,wave_angstrom
   real :: dz,z0,z1
   real :: start, finish
-  real :: w0=3000,w1=5000,dw
+  real :: w0=3000,w1=5000
 !
   logical :: lgrey=.false.
 !
@@ -50,7 +50,7 @@ program flux_feautrier
 !
 ! Calculate the grid variables
 !
-  call calc_wavelength(w1,w0,waves_angstrom,waves_cm,dw)
+  call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
   call calc_temperature(T,z)

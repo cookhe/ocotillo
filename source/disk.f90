@@ -38,17 +38,21 @@ contains
 !
     endsubroutine calc_grid
 !************************************************************************************
-    subroutine calc_wavelength(w1,w0,wa,wc,dw)
+    subroutine calc_wavelength(w1,w0,wa,wc)
 !
       real, dimension(nw) :: wa,wc
       real :: dw,w1,w0
       integer :: i
 !
-      dw = (w1-w0)/(nw-1)
-      do i=1,nw
-        !wavelengths in angstrom 
-        wa(i) = w0 + (i-1)*dw
-      enddo
+      if (nw >1 ) then
+         dw = (w1-w0)/(nw-1)
+         do i=1,nw
+            !wavelengths in angstrom 
+            wa(i) = w0 + (i-1)*dw
+         enddo
+      else
+         wa=w0
+      endif
       wc = wa*1d-8 !wavelengths in cm 
       print*, 'waves_angstrom', wa
 !
