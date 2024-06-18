@@ -4,6 +4,8 @@
   z1 =  5d15
   sigma_grey=0.4
   lgrey=F
+  w0=1.
+  w1=2.
 /
 &temperature_input
   eps = 0.2
