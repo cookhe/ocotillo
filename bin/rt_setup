@@ -1,0 +1,52 @@
+#!/bin/sh
+#                      rt_setup
+#                     -------------
+# Description:
+#   Link files into a local source directory
+#
+#-----------------------------------------------------------------------------
+specrt_home_path=$SPECRT_HOME
+src="`pwd`/source"
+srcdir=$specrt_home_path/source
+#
+echo "Files will be linked to the root code directory '$specrt_home_path'."
+#
+# Remove any broken links...
+#
+find . $src -type l 2>/dev/null | perl -lne 'unlink $_ if (-l && ! -e)'
+#
+# Make a link to a root Makefile to allow make from the run directory
+#
+[ -h Makefile ] && rm -f Makefile
+[ ! -f Makefile ] && ln -s $srcdir/Makefile Makefile
+echo "Linked root Makefile."
+# 
+# Make source subdirectory
+#
+if [ ! -d $src ]; then
+    echo "No source directory found: creating new one (`pwd`/source)."
+    mkdir $src
+fi
+#
+#  LINK all *.f90, and the Makefile to local src directory
+#
+echo "Linking files in '$src'."
+old_dir="`pwd`"
+cd $src
+to_link=
+for file in $srcdir/*.f90  $srcdir/Makefile.source
+do
+    if [ -f $file ]; then
+	if [ -h "`basename $file`" ]; then
+            rm -f "`basename $file`"
+            to_link="$to_link $file"
+	else
+            to_link="$to_link $file"
+	fi
+    else
+	echo "No such file: $file"
+    fi
+done
+[ "$to_link" ] && ln -s $to_link .
+cd $old_dir
+#
