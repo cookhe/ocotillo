@@ -22,12 +22,21 @@ contains
       real :: dz,z1,z0
       integer :: i
 !
-      dz = (z1-z0)/nz
+      dz = (z1-z0)/(nz-1)
       do i=1,nz
         z(n1+i-1) = z0 + (i-1)*dz
       enddo
 !
-   endsubroutine calc_grid  
+! Fill in ghost zones
+!
+      print*,z(n1),z(n2)
+!
+      do i=1,ng
+         z(n1-i) = z(n1) - i*dz
+         z(n2+i) = z(n2) + i*dz
+      enddo
+!
+    endsubroutine calc_grid
 !************************************************************************************
     subroutine calc_wavelength(w1,w0,wa,wc,dw)
 !
@@ -35,7 +44,7 @@ contains
       real :: dw,w1,w0
       integer :: i
 !
-      dw = (w1-w0)/nw
+      dw = (w1-w0)/(nw-1)
       do i=1,nw
         !wavelengths in angstrom 
         wa(i) = w0 + (i-1)*dw
