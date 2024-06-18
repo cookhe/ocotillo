@@ -5,9 +5,6 @@ module Common
   public
 
   include 'resolution.inc'
-  
-! starting, ending, and delta wavelength for grid in angstroms
-  real, parameter :: w1=3000.,w2=5000.,dw=(w2-w1)/nw
 !
 ! For arrays that need ghost zones
 ! Number of ghost zones

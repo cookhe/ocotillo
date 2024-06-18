@@ -31,13 +31,14 @@ program flux_feautrier
   real :: wave_cm,wave_angstrom
   real :: dz,z0,z1
   real :: start, finish
+  real :: w0=3000,w1=5000,dw
 !
   logical :: lgrey=.false.
 !
   !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
   !real, dimension(nz) :: kappa_p,kappa_m 
 !
-  namelist /input/ z0,z1,sigma_grey, lgrey
+  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey
 !  
 !  Read the input namelist with the user-defined parameters. 
 !  
@@ -49,11 +50,7 @@ program flux_feautrier
 !
 ! Calculate the grid variables
 !
-  do iw=0,nw-1
-    waves_angstrom(iw+1) = w1 + iw*dw
-  enddo
-  print*, 'waves_angstrom', waves_angstrom
-  waves_cm = waves_angstrom*1d-8
+  call calc_wavelength(w1,w0,waves_angstrom,waves_cm,dw)
   call calc_grid(z1,z0,z,dz)
   call calc_density(rho,z)
   call calc_temperature(T,z)

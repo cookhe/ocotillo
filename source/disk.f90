@@ -6,14 +6,14 @@ module Disk
   implicit none
   private
 
-  public :: calc_grid,calc_density,calc_temperature
+  public :: calc_grid,calc_density,calc_temperature,calc_wavelength
   
   real :: eps,isoTemp,sigma,midTemp,floorTemp,switchTemp
   real :: rho0,rho_floor,H
   
   namelist /temperature_input/ eps,isoTemp,sigma,midTemp,floorTemp
   namelist /density_input/ rho0,rho_floor,H
-  
+
 contains
 !************************************************************************************
     subroutine calc_grid(z1,z0,z,dz)
@@ -29,7 +29,23 @@ contains
 !
    endsubroutine calc_grid  
 !************************************************************************************
-  subroutine calc_temperature(T,z)
+    subroutine calc_wavelength(w1,w0,wa,wc,dw)
+!
+      real, dimension(nw) :: wa,wc
+      real :: dw,w1,w0
+      integer :: i
+!
+      dw = (w1-w0)/nw
+      do i=1,nw
+        !wavelengths in angstrom 
+        wa(i) = w0 + (i-1)*dw
+      enddo
+      wc = wa*1d-8 !wavelengths in cm 
+      print*, 'waves_angstrom', wa
+!
+    endsubroutine calc_wavelength
+!************************************************************************************
+   subroutine calc_temperature(T,z)
 !    
     real, dimension(nz), intent(inout) :: T
     real, dimension(mz), intent(in) :: z
