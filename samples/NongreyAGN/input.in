@@ -16,7 +16,7 @@
 /
 &density_input
   rho0=1d-9
-  rho_floor=1d-24
+  rho_floor=1d-15
   H=1.496d14
 /
 &gas_state_input
