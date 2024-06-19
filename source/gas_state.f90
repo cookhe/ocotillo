@@ -17,7 +17,7 @@ contains
 subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   real, dimension(nz), intent(in) :: rho,T
   real, dimension(nz), intent(out) :: NHII_NHINHII
-  real, dimension(nz) :: constants,niine_ni,C,index
+  real, dimension(nz) :: constants,niine_ni,C,exparg
   integer :: i,iu
   
   open(newunit=iu,file='./input.in')
@@ -26,10 +26,10 @@ subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
 
   ! calculate the Saha equation (relative fraction of adjacent ions)
   constants = ((sqrt(2*pi*me*k_cgs*T)/h_planck)**3)
-  index = hydrogen_ionization_eV/(k_eV*T)
+  exparg = hydrogen_ionization_eV/(k_eV*T)
   ! index = 100.
   ! print*, 'E/k_eV*T = ', index
-  niine_ni =  constants * exp(-index)
+  niine_ni =  constants * exp(-exparg)
     
   C = mp / rho * niine_ni
 
