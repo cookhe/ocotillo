@@ -1,0 +1,3 @@
+!  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim)
+integer, parameter :: nw=1               ! Number of wavelengths
+integer, parameter :: nz=33,ny=32,nx=31  ! Number of grid points in computational domain
