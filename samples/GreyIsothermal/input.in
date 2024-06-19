@@ -4,6 +4,7 @@
   z1 =  5d15
   sigma_grey=0.4
   lgrey=T
+  lread_athena=F
 /
 &temperature_input
   eps = 0.2

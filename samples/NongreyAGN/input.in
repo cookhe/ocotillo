@@ -6,6 +6,7 @@
   lgrey=F
   w0=3000.
   w1=5000.
+  lread_athena=F
 /
 &temperature_input
   eps = 0.2
