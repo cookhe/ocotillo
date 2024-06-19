@@ -129,7 +129,7 @@ contains
     
     ! Unsold approximation integral
     C = ktemp/(2*R) * ( exp(-chi_m*ktemp1) - exp(-R*ktemp1) )
-    
+
     kappa_H_bf = A * factor * waves**3 * (C + sm)
     
   endsubroutine calc_kappa_H_bf
@@ -235,7 +235,7 @@ contains
     integer :: i
 
     ! fit coefficients
-    if (waves > 16000) then 
+    if (waves .lt. 16000) then
        a = (/+1.99654,&
        -1.18267e-6,&
        +2.62423e-7,&
