@@ -125,7 +125,7 @@ contains
       dd(iz) = -source_function(iz) * zeta
     enddo
 
-    print*, ' Filled center coeffs'
+    if (lfirst) print*, ' Filled center coeffs'
     
   endsubroutine fill_center_coeffs
 !************************************************************************************
@@ -149,7 +149,7 @@ contains
     cc(nz) = 0.
     dd(nz) = -source_function(nz) * zeta * absorp_coeff(nz)**2
 
-    print*, ' Filled boundary coeffs'
+    if (lfirst) print*, ' Filled boundary coeffs'
     
   endsubroutine fill_boundary_coeffs
 !************************************************************************************
