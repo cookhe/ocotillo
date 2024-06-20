@@ -5,7 +5,7 @@ program flux_feautrier
   use Disk
   use GasState
   use ContinuousOpacity
-  use ReadC
+  use ReadAthena
 
   implicit none
 
@@ -19,7 +19,7 @@ program flux_feautrier
   integer :: log_overflow_limit
 
   real :: sigma_grey
-  real, dimension(nz,ny,nx) :: rho3d
+  real, dimension(nz,ny,nx) :: rho3d,temp3d
   real, dimension(nz) :: rho,T
   real, dimension(nz) :: opacity, albedo
   real, dimension(nw) :: waves_cm,waves_angstrom
@@ -49,13 +49,12 @@ program flux_feautrier
 !
   call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
   if (lread_athena) then 
-     call read_from_athena(z,dz,rho3d)
+     call read_from_athena(z,dz,rho3d,temp3d)
   else
      call calc_grid(z1,z0,z,dz)
      call calc_density(rho,z)
+     call calc_temperature(T,z)
   endif
-
-  call calc_temperature(T,z)
 !
 ! Start the time counter
 !
@@ -65,7 +64,10 @@ program flux_feautrier
 !*******************************
   xloop: do ix=1,nx
     yloop: do iy=1,ny
-      if (lread_athena) rho = rho3d(1:nz,iy,ix)
+      if (lread_athena) then
+        rho = rho3d(1:nz,iy,ix)
+        T   = temp3d(1:nz,iy,ix)
+      endif
       call calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
       call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
       call calc_electron_pressure(ne,T,electron_pressure)
@@ -104,6 +106,7 @@ program flux_feautrier
 !
 ! Solve the system of equations
 !
+         if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
          call tridag(aa, bb, cc, dd, U(n1:n2,iw))
          if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iw)), maxval(U(n1:n2,iw))
 !
