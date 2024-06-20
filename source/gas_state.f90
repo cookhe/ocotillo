@@ -50,14 +50,14 @@ subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   
 endsubroutine calc_hydrogen_ion_frac
 !******************************************
-subroutine solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
+subroutine solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
   real, dimension(nz), intent(in) :: rho,NHII_NHINHII
-  real, dimension(nz), intent(out) :: n,nHI,nHII,ne,ionization_factor
+  real, dimension(nz), intent(out) :: number_density,nHI,nHII,ne,ionization_factor
   integer :: i
 
-  n = rho*mp1
-  nHII = NHII_NHINHII * n
-  nHI = n - nHII
+  number_density = rho*mp1
+  nHII = NHII_NHINHII * number_density
+  nHI = number_density - nHII
   ne = nHII
   
   do i=1,nz
@@ -69,14 +69,14 @@ subroutine solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
   enddo
 
 endsubroutine solve_gas_state
-
-! Subroune for electron pressure
+!******************************************
 subroutine calc_electron_pressure(ne, T, electron_pressure)
+! Subroutine for electron pressure
   real, intent(in), dimension(nz) :: ne, T
   real, intent(out), dimension(nz) :: electron_pressure
 
   electron_pressure = ne * k_cgs * T
   
 endsubroutine calc_electron_pressure
-
+!******************************************
 endmodule GasState

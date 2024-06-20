@@ -25,7 +25,7 @@ program flux_feautrier
   real, dimension(nz) :: opacity, albedo
   real, dimension(nw) :: waves_cm,waves_angstrom
 
-  real, dimension(nz) :: NHII_NHINHII,n,nHII,nHI,ne,ionization_factor
+  real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
@@ -35,9 +35,6 @@ program flux_feautrier
   real :: w0=3000,w1=5000
 !
   logical :: lgrey=.false.,lread_athena=.true.
-!
-  !real, dimension(nz,nw) :: kappa_H_bf,kappa_H_ff,kappa_Hm_bf,kappa_Hm_ff,kappa_rad
-  !real, dimension(nz) :: kappa_p,kappa_m 
 !
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !  
@@ -52,18 +49,18 @@ program flux_feautrier
 ! Calculate the grid variables
 !
   call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
-  if (.not.lread_athena) then 
+  if (lread_athena) then 
+     call read_from_athena(z,dz,rho3d)
+  else
      call calc_grid(z1,z0,z,dz)
      call calc_density(rho,z)
-  else
-     call read_from_athena(z,dz,rho3d)
   endif
 
   call calc_temperature(T,z)
 !
-! Start the counter
+! Start the time counter
 !
-      call cpu_time(start)    
+  call cpu_time(start)    
 !*******************************
 !xy-dependent starts here
 !*******************************
@@ -71,9 +68,9 @@ program flux_feautrier
     yloop: do iy=1,ny
       if (lread_athena) rho = rho3d(1:nz,iy,ix)
       call calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
-      call solve_gas_state(rho,NHII_NHINHII,n,nHI,nHII,ne,ionization_factor)
+      call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
       call calc_electron_pressure(ne,T,electron_pressure)
-      e_scatter    = get_electron_thomson_scattering(n,nHII)
+      e_scatter    = get_electron_thomson_scattering(number_density,nHII)
       theta        = get_theta(T)
       hm_bf_factor = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !
@@ -117,7 +114,7 @@ program flux_feautrier
     enddo yloop
   enddo xloop
 !
-! Finish the counter and print the wall time
+! Finish the time counter and print the wall time
 !
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."

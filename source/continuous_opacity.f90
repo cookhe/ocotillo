@@ -15,12 +15,12 @@ module ContinuousOpacity
   
 contains
 !******************************************
-  function get_electron_thomson_scattering(n, nHII) result(e_scatter)
-    real, intent(in), dimension(nz) :: n, nHII
+  function get_electron_thomson_scattering(number_density, nHII) result(e_scatter)
+    real, intent(in), dimension(nz) :: number_density, nHII
     real, dimension(nz) ::  e_scatter
     real :: alpha_e = 0.6648e-24 ! coefficient
     
-    e_scatter = alpha_e * (nHII / n)  
+    e_scatter = alpha_e * (nHII / number_density)  
   
   endfunction get_electron_thomson_scattering
 !******************************************
