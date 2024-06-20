@@ -24,6 +24,7 @@ module Common
 ! Mass of proton and inverse
   real, parameter :: mp=1.67262192369d-24
   real :: mp1=1./mp
+  real :: amu=1.66053906660e-24
 
 ! Mass of electron
   real :: me=9.1093837015d-28
@@ -35,7 +36,9 @@ module Common
   real, parameter :: pi=4*atan(1.0)
 
 ! Boltzmann constant in erg/K and eV/K
-  real :: k_cgs=1.380649d-16,k_eV=8.617333262145179d-05
+  real, parameter :: k_cgs=1.380649d-16
+  real :: k_eV=8.617333262145179d-05
+  real :: k1_cgs = 1./k_cgs
 
 ! Ionization potential energy for Hydrogen in eV
   real :: hydrogen_ionization_eV = 13.6
@@ -53,5 +56,8 @@ module Common
   real, parameter :: Iev = h_planck*c_light_cgs*Rcm * 6.2419d11 ! convert to eV
 !  
   logical :: lfirst
+!
+  real, parameter :: G_Newton_cgs=6.6742d-8
+  real :: SolarMass=1.988409870698051e+33
 !
 endmodule Common
