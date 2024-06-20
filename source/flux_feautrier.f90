@@ -47,6 +47,8 @@ program flux_feautrier
 !
 ! Calculate the grid variables
 !
+  call read_disk_params()
+!
   call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
   if (lread_athena) then 
      call read_from_athena(z,dz,rho3d,temp3d)
