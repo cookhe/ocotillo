@@ -20,6 +20,7 @@ module Common
   real :: sigma_sb=5.6703744191844314d-05
 !  
   real :: float_info_max=huge(1.0) !3.9085d307
+  real :: epsi=epsilon(1.0) !machine precision
 
 ! Mass of proton and inverse
   real, parameter :: mp=1.67262192369d-24
