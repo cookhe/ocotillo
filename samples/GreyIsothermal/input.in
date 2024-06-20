@@ -7,7 +7,6 @@
   lread_athena=F
 /
 &temperature_input
-  eps = 0.2
   isoTemp = 1. !64857.04298198191
   sigma = 1e30 !2.54d14
   midTemp = 1. !61341

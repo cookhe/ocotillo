@@ -6,15 +6,14 @@
   lgrey=T
 /
 &temperature_input
-  eps = 0.2
-  isoTemp = 1. !64857.04298198191
-  sigma = 1e30 !2.54d14
-  midTemp = 1. !61341
+  isoTemp = 64857.04298198191
+  sigma = 2.54d14
+  midTemp = 61341
   floorTemp = 2000.
 /
 &density_input
   rho0=1d-9
-  rho_floor=1d-24
+  rho_floor=1d-15
   H=1.496d14
 /
 &gas_state_input
@@ -22,4 +21,9 @@
 /
 &athena_input
   FileName="./agn_snova_3d.0000.bin"
+  Mbh_SolarMasses = 1e8
+  r0ref_rg = 1e3  !location in the disk, in units of rg
+  aspect_ratio = 0.005
+  mean_molecular_weight  = 1.0079764
+  rho0=1e-9
 /
