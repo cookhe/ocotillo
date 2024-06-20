@@ -1,6 +1,7 @@
 module ReadAthena
 
   use Common
+  use Disk
   use, intrinsic :: iso_c_binding, only: c_float, c_double  
   implicit none
 
@@ -171,7 +172,10 @@ contains
           eint = engc(:,iy,ix) - ekin
           cs2 = gamma*gamma1 * eint * rho1
           temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
-        enddo
+!
+          call calc_temperature(temp(:,iy,ix),zc,&
+               lfrom_read_athena=.true.)
+       enddo
       enddo
 !
       print*,'unit_time     = ',unit_time,' s'
