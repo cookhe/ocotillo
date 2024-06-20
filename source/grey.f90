@@ -9,9 +9,6 @@ module Grey
   
 contains
 !******************************************
-!  function  
-!  endfunction
-!******************************************
   subroutine grey_parameters(rho,T,sigma_grey,&
        B_grey,kappa_grey,omega_grey)
 
