@@ -47,7 +47,9 @@ program flux_feautrier
 !
 ! Calculate the grid variables
 !
-  call read_disk_params()
+  call read_temperature_input()
+  call read_density_input()
+  call read_gas_state_input()
 !
   call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
   if (lread_athena) then 
