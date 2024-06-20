@@ -77,7 +77,7 @@ program flux_feautrier
 ! Do a sanity check for grey RT
 !
       if (lgrey.and.(nw /= 1)) then
-         print*,"For Grey RT use only one wavelength. Switch nw=1 in commons.f90"
+         print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
          stop
       endif
 !
