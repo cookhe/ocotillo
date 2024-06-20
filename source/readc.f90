@@ -7,6 +7,10 @@ module ReadC
   private
 
   public :: read_from_athena
+
+  character(len=90)   :: FileName
+  
+  namelist /athena_input/ FileName
   
 contains
 !************************************************************************************
@@ -18,12 +22,13 @@ contains
       real, intent(out) :: dz
       real, dimension(mz), intent(out) :: z
       real, dimension(nz,ny,nx), intent(out) :: rhoc
-  
-      character(len=90)   :: FileName= "./agn_snova_3d.0000.bin"
 
   !order: 
   !coordsys,nx,ny,nz,nvar,nscalars,selfgrav_boolean, particles_boolean,gamma1,cs,t,dt,x,y,z,rho,rux,ruy,ruz,eng
   !
+      open(40,file='./input.in')
+      read(40,nml=athena_input)
+      close(40)
 
       print*,trim(FileName)
       open(99, file = trim(FileName), form = 'unformatted', ACCESS='stream')

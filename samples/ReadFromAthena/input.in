@@ -20,3 +20,6 @@
 &gas_state_input
   fully_ionized_T = 2.d4
 /
+&athena_input
+  FileName="./agn_snova_3d.0000.bin"
+/
