@@ -16,17 +16,14 @@ module Common
 ! Index locations of fist/last zones of computational domain 
   integer, parameter :: n1=ng+1,n2=mz-ng
 
-! Index to store the grey solution
-  integer, parameter :: igrey=1
-  
 ! Stefan-Boltzmann constant
   real :: sigma_sb=5.6703744191844314d-05
 !  
-  real :: float_info_max=3.9085d307
+  real :: float_info_max=huge(1.0) !3.9085d307
 
 ! Mass of proton and inverse
-  real :: mp=1.67262192369d-24
-  real :: mp1=1 / 1.67262192369d-24
+  real, parameter :: mp=1.67262192369d-24
+  real :: mp1=1./mp
 
 ! Mass of electron
   real :: me=9.1093837015d-28
