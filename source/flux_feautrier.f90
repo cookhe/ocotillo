@@ -5,7 +5,6 @@ program flux_feautrier
   use Disk
   use GasState
   use ContinuousOpacity
-  use Grey
   use ReadC
 
   implicit none

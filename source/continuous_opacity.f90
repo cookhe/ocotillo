@@ -12,9 +12,10 @@ module ContinuousOpacity
   public :: get_electron_thomson_scattering,get_theta
   public :: get_hydrogen_ion_bound_free
   public :: calc_opacity_and_albedo
+  public :: grey_parameters
   
 contains
-!******************************************
+!************************************************************************************
   function get_electron_thomson_scattering(number_density, nHII) result(e_scatter)
     real, intent(in), dimension(nz) :: number_density, nHII
     real, dimension(nz) ::  e_scatter
@@ -23,7 +24,7 @@ contains
     e_scatter = alpha_e * (nHII / number_density)  
   
   endfunction get_electron_thomson_scattering
-!******************************************
+!************************************************************************************
   function get_theta(T) result(theta)
     real, intent(in), dimension(nz) :: T
     real, dimension(nz) ::  theta
@@ -31,7 +32,7 @@ contains
     theta = 5040./ T
     
   endfunction get_theta
-!******************************************
+!************************************************************************************
   function get_hydrogen_ion_bound_free(electron_pressure,theta) result(hm_bf_factor)
 
     real, intent(in), dimension(nz) :: electron_pressure,theta
@@ -40,7 +41,7 @@ contains
     hm_bf_factor=4.158e-10 * electron_pressure * theta**(5./2) * 10**(0.754 * theta)
 
   endfunction get_hydrogen_ion_bound_free
-!******************************************
+!************************************************************************************
   subroutine calc_hydrogen_stimulated_emission(wave, theta, stim_factor)
     real, intent(in) :: wave  ! MUST be in angstroms
     real, intent(in), dimension(nz) :: theta  ! theta = 5040./T[K]
@@ -51,7 +52,7 @@ contains
     stim_factor = 1 - 10**(-chi*theta)
 
   endsubroutine calc_hydrogen_stimulated_emission
-!******************************************
+!************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
        temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
 
@@ -78,7 +79,7 @@ contains
     albedo = e_scatter / (kappa_rad*mp)
 
   endsubroutine calc_opacity_and_albedo
-!******************************************
+!************************************************************************************
   subroutine calc_kappa_H_bf(waves, temp, factor, kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
@@ -133,7 +134,7 @@ contains
     kappa_H_bf = A * factor * waves**3 * (C + sm)
     
   endsubroutine calc_kappa_H_bf
-!******************************************
+!************************************************************************************
   subroutine calc_kappa_H_ff(waves, temp, factor,&
     rho,NHII_NHINHII,ne,nHI,nHII,&
     kappa_rad,opacity)
@@ -188,7 +189,7 @@ contains
     enddo
 
   endsubroutine calc_kappa_H_ff
-!******************************************
+!************************************************************************************
   subroutine bremsstrahlung_absorptionCoeff(frequency, temperature, nelectrons, nprotons, zprotons,kappaRho)
 
     real :: e,me,h,c,kb,ln_const,gaunt
@@ -217,7 +218,7 @@ contains
     kappaRho = exp(ln_const) * exp(ln_physQuant) * gaunt
 
   endsubroutine bremsstrahlung_absorptionCoeff
-!******************************************
+!************************************************************************************
   subroutine calc_kappa_Hm_bf(waves,factor,kappa_Hm_bf)
 !    """H- ion bound-free continuum opacity.
 !    Calculates the sum of the fit function
@@ -256,7 +257,7 @@ contains
     endif
 !
   endsubroutine  calc_kappa_Hm_bf
-!******************************************  
+!************************************************************************************
   subroutine calc_kappa_Hm_ff(ne, waves, temp, factor, kappa_Hm_ff)
 !
 !    """H- ion free-free interaction cross section per HI per unit                                 
@@ -294,7 +295,7 @@ contains
     kappa_Hm_ff = factor * ne * k * temp * 10**(flam)
 
   endsubroutine calc_kappa_Hm_ff
-!******************************************  
+!************************************************************************************
   subroutine gaunt(n, waves, gaunt_factor)
 !
 !    """
@@ -334,5 +335,20 @@ contains
     endif
 !
   endsubroutine gaunt
-!******************************************
+!************************************************************************************
+  subroutine grey_parameters(rho,T,sigma_grey,&
+       B_grey,kappa_grey,omega_grey)
+
+    real, intent(in), dimension(nz) :: rho,T
+    real, intent(in) :: sigma_grey
+    real, dimension(nz) :: alpha_grey
+    real, intent(out), dimension(nz) :: B_grey,kappa_grey,omega_grey
+    
+    B_grey = sigma_sb*T**4
+    alpha_grey = 3.68e22 * T**(-3.5) *  rho
+    kappa_grey = (alpha_grey+sigma_grey)*rho
+    omega_grey = sigma_grey / (alpha_grey + sigma_grey)
+
+  endsubroutine grey_parameters
+!************************************************************************************
 endmodule ContinuousOpacity
