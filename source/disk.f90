@@ -6,17 +6,36 @@ module Disk
   implicit none
   private
 
+  public :: read_temperature_input,read_density_input
   public :: calc_grid,calc_density,calc_temperature,calc_wavelength
   
-  real :: eps,isoTemp,sigma,midTemp,floorTemp,switchTemp
+  real :: isoTemp,sigma,midTemp,floorTemp,switchTemp
   real :: rho0,rho_floor,H
   
-  namelist /temperature_input/ eps,isoTemp,sigma,midTemp,floorTemp
+  namelist /temperature_input/ isoTemp,sigma,midTemp,floorTemp
   namelist /density_input/ rho0,rho_floor,H
 
 contains
 !************************************************************************************
-    subroutine calc_grid(z1,z0,z,dz)
+   subroutine read_temperature_input()
+!
+     open(30,file='./input.in')
+     read(30,nml=temperature_input)
+     close(30)
+!
+    switchTemp = (1+epsi) * isoTemp ! must be larger than mdiTemp
+!
+   endsubroutine read_temperature_input
+!************************************************************************************
+   subroutine read_density_input()
+!
+     open(30,file='./input.in')
+     read(30,nml=density_input)
+     close(30)
+!
+   endsubroutine read_density_input
+!************************************************************************************
+   subroutine calc_grid(z1,z0,z,dz)
 !
       real, dimension(mz) :: z
       real :: dz,z1,z0
@@ -58,38 +77,50 @@ contains
 !
     endsubroutine calc_wavelength
 !************************************************************************************
-   subroutine calc_temperature(T,z)
+   subroutine calc_temperature(T,z,lfrom_read_athena)
 !    
     real, dimension(nz), intent(inout) :: T
     real, dimension(mz), intent(in) :: z
-    real, dimension(nz) :: Tgauss
+    real, dimension(nz), save :: Tgauss
     integer :: i
+    logical, optional :: lfrom_read_athena
+    logical :: lathena
+    logical, save :: lfirst_call=.true.
 !
-    open(30,file='./input.in')
-    read(30,nml=temperature_input)
-    close(30)
+    if (present(lfrom_read_athena)) then
+      lathena=lfrom_read_athena
+    else
+      lathena=.false.
+    endif
 !
-    switchTemp = (1+eps) * isoTemp ! must be larger than mdiTemp
+! Check if it's calling from read_athena. Otherwise
+! assign to the midTemp value from input.in
 !
-! In the future, this T will be the Athena output
-!
-    T = midTemp    
+    if (.not.lathena) T = midTemp
 !    
 ! Calculate the gaussian profile
 !
-    Tgauss = midTemp * exp(-0.5 * z(n1:n2)**2/sigma**2)
+    if (lfirst_call) then
+      Tgauss = midTemp * exp(-0.5 * z(n1:n2)**2/sigma**2)
+      lfirst_call=.false.
+    endif
 !        
-! Choose between the gaussian profile, the floor, or the current value.
+! If the temperature is greater than the switch temperature,
+! it will use the current value (e.g. the Athena input.
+! Else choose between the gaussian profile or the floor.
 !
     do i=1,nz
-      if ((T(i) < switchTemp) .and. (Tgauss(i) > floorTemp)) then
-        T(i) = Tgauss(i)
-      elseif ((T(i) < switchTemp) .and. (Tgauss(i) < floorTemp)) then
-        T(i) = floorTemp
+      if (T(i) < switchTemp) then
+        if (Tgauss(i) > floorTemp) then
+          T(i) = Tgauss(i)
+        else
+          T(i) = floorTemp
+        endif
       endif
     enddo
 !
-    print*,"maxval(T), minval(T)",maxval(T), minval(T)
+    if (.not.lathena) & ! if read from read_athena, it already prints there
+         print*,"maxval(T), minval(T)",maxval(T), minval(T)
 !
     endsubroutine calc_temperature
 !************************************************************************************
