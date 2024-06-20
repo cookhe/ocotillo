@@ -7,23 +7,29 @@ module GasState
   private
 
   public :: calc_hydrogen_ion_frac,solve_gas_state
-  public :: calc_electron_pressure
+  public :: calc_electron_pressure,read_gas_state_input
 
   real :: fully_ionized_T
   namelist /gas_state_input/ fully_ionized_T
   
 contains
 !******************************************
-subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
+  subroutine read_gas_state_input()
+
+    integer :: iu
+
+    open(newunit=iu,file='./input.in')
+    read(iu,nml=gas_state_input)
+    close(iu)
+
+  endsubroutine read_gas_state_input
+!******************************************
+  subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
   real, dimension(nz), intent(in) :: rho,T
   real, dimension(nz), intent(out) :: NHII_NHINHII
   real, dimension(nz) :: constants,niine_ni,C,exparg
-  integer :: i,iu
+  integer :: i
   
-  open(newunit=iu,file='./input.in')
-  read(iu,nml=gas_state_input)
-  close(iu)
-
   ! calculate the Saha equation (relative fraction of adjacent ions)
   constants = ((sqrt(2*pi*me*k_cgs*T)/h_planck)**3)
   exparg = hydrogen_ionization_eV/(k_eV*T)
