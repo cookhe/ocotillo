@@ -57,10 +57,11 @@ contains
 !
     endsubroutine calc_grid
 !************************************************************************************
-    subroutine calc_wavelength(w1,w0,wa,wc)
+    subroutine calc_wavelength(w1,w0,wa,wa1,wc,wc1)
 !
-      real, dimension(nw) :: wa,wc
-      real :: dw,w1,w0
+      real, dimension(nw), intent(out) :: wa,wa1,wc,wc1
+      real, intent(in) :: w1,w0
+      real :: dw
       integer :: i
 !
       if (nw >1 ) then
@@ -72,7 +73,9 @@ contains
       else
          wa=w0
       endif
-      wc = wa*1d-8 !wavelengths in cm 
+      wa1 = 1./wa
+      wc  = wa*1d-8 !wavelengths in cm
+      wc1 = 1./wc
       print*, 'waves_angstrom', wa
 !
     endsubroutine calc_wavelength
