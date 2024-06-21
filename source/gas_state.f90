@@ -24,8 +24,8 @@ contains
 
   endsubroutine read_gas_state_input
 !******************************************
-  subroutine calc_hydrogen_ion_frac(rho1,TNHII_NHINHII)
-  real, dimension(nz), intent(in) :: rho1,T
+  subroutine calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
+  real, dimension(nz), intent(in) :: rho1,T,T1
   real, dimension(nz), intent(out) :: NHII_NHINHII
   real, dimension(nz) :: constants,niine_ni,C,exparg
   integer :: i
@@ -33,7 +33,7 @@ contains
 ! calculate the Saha equation (relative fraction of adjacent ions)
 !
   constants = (sqrt(2*pi*me*k_cgs*T)*h1_planck)**3
-  exparg = hydrogen_ionization_eV/(k_eV*T)
+  exparg = T1 * hydrogen_ionization_eV*k1_eV
   niine_ni =  constants * exp(-exparg)
     
   C = mp * rho1 * niine_ni
