@@ -66,7 +66,7 @@ contains
     intent(in)   :: e_scatter,rho,ne,temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    call calc_kappa_H_bf (wave_angstrom, temp, temp1, stim_factor * ionization_factor,  kappa_H_bf)
+    kappa_H_bf = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
     call calc_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, kappa_Hm_bf)
     call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
 
@@ -80,7 +80,7 @@ contains
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
-  subroutine calc_kappa_H_bf(waves, temp, temp1, factor, kappa_H_bf)
+  function get_kappa_H_bf(waves, temp, temp1, factor) result(kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
 !    1 to m-1 excitation states, where m is the principal quantum
@@ -109,7 +109,6 @@ contains
     real :: A,chi_n,chi_m,waves, g, n1
 !
     intent(in) :: waves, temp, temp1, factor
-    intent(out) :: kappa_H_bf
 !
     A = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
            
@@ -133,7 +132,7 @@ contains
 
     kappa_H_bf = A * factor * waves**3 * (C + sm)
     
-  endsubroutine calc_kappa_H_bf
+  endfunction get_kappa_H_bf
 !************************************************************************************
   subroutine calc_kappa_H_ff(waves, temp, factor,&
     rho,NHII_NHINHII,ne,nHI,nHII,&
