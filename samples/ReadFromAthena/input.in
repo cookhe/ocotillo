@@ -3,7 +3,7 @@
   z0 = -5d15
   z1 =  5d15
   sigma_grey=0.4
-  lgrey=T
+  lgrey=F
 /
 &temperature_input
   isoTemp = 64857.04298198191
