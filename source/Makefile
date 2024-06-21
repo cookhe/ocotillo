@@ -7,3 +7,7 @@ compile:
 
 clean:
 	(cd source; $(MAKE) FROM_PARENT=source/ -f Makefile.source clean)
+
+cleanall:
+	(cd source; $(MAKE) FROM_PARENT=source/ -f Makefile.source cleanall)
+
