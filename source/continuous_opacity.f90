@@ -67,7 +67,7 @@ contains
     intent(out)  :: opacity, albedo
 
     kappa_H_bf = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
-    call calc_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, kappa_Hm_bf)
+    kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
     call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
@@ -218,7 +218,7 @@ contains
 
   endsubroutine bremsstrahlung_absorptionCoeff
 !************************************************************************************
-  subroutine calc_kappa_Hm_bf(waves,factor,kappa_Hm_bf)
+  function get_kappa_Hm_bf(waves,factor) result(kappa_Hm_bf)
 !    """H- ion bound-free continuum opacity.
 !    Calculates the sum of the fit function
 !    
@@ -255,7 +255,7 @@ contains
        kappa_Hm_bf=0
     endif
 !
-  endsubroutine  calc_kappa_Hm_bf
+  endfunction  get_kappa_Hm_bf
 !************************************************************************************
   subroutine calc_kappa_Hm_ff(ne, waves, temp, factor, kappa_Hm_ff)
 !
