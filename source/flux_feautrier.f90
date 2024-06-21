@@ -20,7 +20,7 @@ program flux_feautrier
 
   real :: sigma_grey
   real, dimension(nz,ny,nx) :: rho3d,temp3d
-  real, dimension(nz) :: rho,T
+  real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
   real, dimension(nw) :: waves_cm,waves_angstrom
 
@@ -43,6 +43,13 @@ program flux_feautrier
   read(20,nml=input)
   close(20)
 !    
+! Do a sanity check for grey RT
+!
+  if (lgrey.and.(nw /= 1)) then
+    print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
+    stop
+  endif
+!
   log_overflow_limit = int(floor(log10(float_info_max)))
 !
 ! Calculate the grid variables
@@ -63,28 +70,23 @@ program flux_feautrier
 ! Start the time counter
 !
   call cpu_time(start)    
-!*******************************
+!***********************************************************************
 !xy-dependent starts here
-!*******************************
+!***********************************************************************
   xloop: do ix=1,nx
     yloop: do iy=1,ny
       if (lread_athena) then
         rho = rho3d(1:nz,iy,ix)
         T   = temp3d(1:nz,iy,ix)
       endif
-      call calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
+      rho1=1./rho
+      T1=1./T
+      call calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
       call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
       call calc_electron_pressure(ne,T,electron_pressure)
       e_scatter    = get_electron_thomson_scattering(number_density,nHII)
       theta        = get_theta(T)
       hm_bf_factor = get_hydrogen_ion_bound_free(electron_pressure,theta)
-!
-! Do a sanity check for grey RT
-!
-      if (lgrey.and.(nw /= 1)) then
-         print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
-         stop
-      endif
 !
 ! Loop over wavelengths
 !
@@ -137,4 +139,4 @@ program flux_feautrier
   call output_data(U,V,Ip,Im)
 ! 
 endprogram flux_feautrier
-!********
+!***********************************************************************
