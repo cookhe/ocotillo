@@ -136,7 +136,7 @@ contains
 !
     rho = rho0*exp(-.5*z(n1:n2)**2/H**2)
 !
-! Implement a desity floor    
+! Implement a density floor
 !
     do i=1,nz
       if (rho(i) < rho_floor) then 
