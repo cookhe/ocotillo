@@ -22,13 +22,14 @@ program flux_feautrier
   real, dimension(nz,ny,nx) :: rho3d,temp3d
   real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
-  real, dimension(nw) :: waves_cm,waves_angstrom
+  real, dimension(nw) :: waves_cm,waves1_cm
+  real, dimension(n1) :: waves_angstrom,waves1_angstrom
 
   real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
-  real :: wave_cm,wave_angstrom
+  real :: wave_cm,wave_angstrom,wave1_cm,wave1_angstrom
   real :: dz,z0,z1
   real :: start, finish
   real :: w0=3000,w1=5000
@@ -58,7 +59,8 @@ program flux_feautrier
   call read_density_input()
   call read_gas_state_input()
 !
-  call calc_wavelength(w1,w0,waves_angstrom,waves_cm)
+  call calc_wavelength(w1,w0,waves_angstrom,&
+       waves1_angstrom,waves_cm,waves1_cm)
   if (lread_athena) then 
      call read_from_athena(z,dz,rho3d,temp3d)
   else
@@ -85,7 +87,7 @@ program flux_feautrier
       call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
       electron_pressure = get_electron_pressure(ne,T)
       e_scatter         = get_electron_thomson_scattering(number_density,nHII)
-      theta             = get_theta(T)
+      theta             = get_theta(T1)
       hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !
 ! Loop over wavelengths
@@ -93,13 +95,15 @@ program flux_feautrier
       wavelength: do iw=1,nw
          lfirst=(ix==1).and.(iy==1).and.(iw==1) 
          wave_cm = waves_cm(iw)
+         wave1_cm = waves1_cm(iw)
          if (lfirst) print*, 'waves_cm',waves_cm
          wave_angstrom = waves_angstrom(iw)
+         wave1_angstrom = waves1_angstrom(iw)         
 !    
          if (lgrey) then
             call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
          else
-            call calc_source_function(wave_cm,T,source_function,log_overflow_limit) !output: source_function
+            source_function = get_source_function(wave1_cm,T1,log_overflow_limit) !output: source_function
             call calc_hydrogen_stimulated_emission(wave_angstrom,theta,stim_factor) !output: stim_factor
             call calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
                  T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
