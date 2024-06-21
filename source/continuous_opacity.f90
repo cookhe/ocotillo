@@ -123,7 +123,7 @@ contains
       chi_n = RydbergEnergy * (1. - 1.*n1**2)
       call gaunt(n, waves, g)
       sm = sm + g*n1**3 * exp(-chi_n*ktemp1)
-     enddo
+    enddo
     
     ! excitation energy of state level m
     chi_m = RydbergEnergy * (1. - 1./m**2)
