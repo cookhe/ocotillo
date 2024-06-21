@@ -54,9 +54,9 @@ contains
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
-       temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
+       temp,temp1,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, temp, ne, NHII_NHINHII,nHI,nHII
+    real, dimension(nz) :: e_scatter,rho, temp, temp1, ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     real :: wave_angstrom
@@ -66,7 +66,7 @@ contains
     intent(in)   :: e_scatter,rho,ne,temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    call calc_kappa_H_bf (wave_angstrom, temp, stim_factor * ionization_factor,  kappa_H_bf)
+    call calc_kappa_H_bf (wave_angstrom, temp, temp1, stim_factor * ionization_factor,  kappa_H_bf)
     call calc_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, kappa_Hm_bf)
     call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
 
@@ -80,7 +80,7 @@ contains
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
-  subroutine calc_kappa_H_bf(waves, temp, factor, kappa_H_bf)
+  subroutine calc_kappa_H_bf(waves, temp, temp1, factor, kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
 !    1 to m-1 excitation states, where m is the principal quantum
@@ -104,32 +104,32 @@ contains
 !        neutral hydrogen atom
 !    """
 !    
-    real, dimension(nz) :: sm, temp, ktemp, ktemp1, factor, C, kappa_H_bf
+    real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
     integer :: m=6, n
-    real :: A,R,chi_n,chi_m,waves, g
+    real :: A,chi_n,chi_m,waves, g, n1
 !
-    intent(in) :: waves, temp, factor
+    intent(in) :: waves, temp, temp1, factor
     intent(out) :: kappa_H_bf
 !
     A = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
-    R = RydbergEnergy ! erg       - Rydberg energy 2.1798741e-11
            
     ! sum for the first m-1 excitation states
     sm = 0.
     ktemp = k_cgs*temp
-    ktemp1 = 1./ktemp
+    ktemp1 = k1_cgs*temp1
     
     do n=1,m
-      chi_n = R * (1. - 1./n**2)
+      n1=1./n
+      chi_n = RydbergEnergy * (1. - 1.*n1**2)
       call gaunt(n, waves, g)
-      sm = sm + g/n**3 * exp(-chi_n*ktemp1)
+      sm = sm + g*n1**3 * exp(-chi_n*ktemp1)
      enddo
     
     ! excitation energy of state level m
-    chi_m = R * (1. - 1./m**2)
+    chi_m = RydbergEnergy * (1. - 1./m**2)
     
     ! Unsold approximation integral
-    C = ktemp/(2*R) * ( exp(-chi_m*ktemp1) - exp(-R*ktemp1) )
+    C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
 
     kappa_H_bf = A * factor * waves**3 * (C + sm)
     

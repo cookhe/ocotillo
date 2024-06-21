@@ -48,7 +48,8 @@ module Common
 !
   real, parameter :: c_light_cgs = 2.99792458d10
 !
-  real :: RydbergEnergy = 2.1798741d-11
+  real, parameter :: RydbergEnergy = 2.1798741d-11
+  real :: RydbergEnergy1 = 1./RydbergEnergy
 !
   real, parameter :: e_electron_cgs  = 4.8032068d-10 ![esu]: charge
 !  
