@@ -32,14 +32,16 @@ module Common
 
 ! Planck constant
   real, parameter :: h_planck=6.62607015d-27
+  real :: h1_planck = 1./h_planck
 
 ! Pi
   real, parameter :: pi=4*atan(1.0)
 
 ! Boltzmann constant in erg/K and eV/K
   real, parameter :: k_cgs=1.380649d-16
-  real :: k_eV=8.617333262145179d-05
+  real, parameter :: k_eV=8.617333262145179d-05
   real :: k1_cgs = 1./k_cgs
+  real :: k1_eV = 1./k_eV
 
 ! Ionization potential energy for Hydrogen in eV
   real :: hydrogen_ionization_eV = 13.6
