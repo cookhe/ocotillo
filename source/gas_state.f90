@@ -7,7 +7,7 @@ module GasState
   private
 
   public :: calc_hydrogen_ion_frac,solve_gas_state
-  public :: calc_electron_pressure,read_gas_state_input
+  public :: get_electron_pressure,read_gas_state_input
 
   real :: fully_ionized_T
   namelist /gas_state_input/ fully_ionized_T
@@ -73,13 +73,13 @@ subroutine solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionizatio
 
 endsubroutine solve_gas_state
 !******************************************
-subroutine calc_electron_pressure(ne, T, electron_pressure)
-! Subroutine for electron pressure
+function get_electron_pressure(ne, T) result(electron_pressure)
+! function  for electron pressure
   real, intent(in), dimension(nz) :: ne, T
-  real, intent(out), dimension(nz) :: electron_pressure
+  real, dimension(nz) :: electron_pressure
 
   electron_pressure = ne * k_cgs * T
   
-endsubroutine calc_electron_pressure
+endfunction get_electron_pressure
 !******************************************
 endmodule GasState

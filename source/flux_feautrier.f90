@@ -83,10 +83,10 @@ program flux_feautrier
       T1=1./T
       call calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
       call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
-      call calc_electron_pressure(ne,T,electron_pressure)
-      e_scatter    = get_electron_thomson_scattering(number_density,nHII)
-      theta        = get_theta(T)
-      hm_bf_factor = get_hydrogen_ion_bound_free(electron_pressure,theta)
+      electron_pressure = get_electron_pressure(ne,T)
+      e_scatter         = get_electron_thomson_scattering(number_density,nHII)
+      theta             = get_theta(T)
+      hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !
 ! Loop over wavelengths
 !
