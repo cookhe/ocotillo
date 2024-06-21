@@ -23,7 +23,7 @@ program flux_feautrier
   real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
   real, dimension(nw) :: waves_cm,waves1_cm
-  real, dimension(n1) :: waves_angstrom,waves1_angstrom
+  real, dimension(nw) :: waves_angstrom,waves1_angstrom
 
   real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
@@ -98,7 +98,7 @@ program flux_feautrier
          wave1_cm = waves1_cm(iw)
          if (lfirst) print*, 'waves_cm',waves_cm
          wave_angstrom = waves_angstrom(iw)
-         wave1_angstrom = waves1_angstrom(iw)         
+         wave1_angstrom = waves1_angstrom(iw)
 !    
          if (lgrey) then
             call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
