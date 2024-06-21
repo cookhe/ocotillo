@@ -103,8 +103,8 @@ program flux_feautrier
          if (lgrey) then
             call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
          else
-            source_function = get_source_function(wave1_cm,T1,log_overflow_limit) !output: source_function
-            stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta) !output: stim_factor
+            source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
+            stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
             call calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
                  T,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
          endif
