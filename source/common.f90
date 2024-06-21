@@ -58,6 +58,7 @@ module Common
   real, parameter :: log10e = log10(exp(1d0))
   real, parameter :: Rcm = 2 * pi**2 * me_cgs * e_electron_cgs**4 / (h_planck**3 * c_light_cgs)
   real, parameter :: Iev = h_planck*c_light_cgs*Rcm * 6.2419d11 ! convert to eV
+  real :: Iev1 = 1./Iev
 !  
   logical :: lfirst
 !
