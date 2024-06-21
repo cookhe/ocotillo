@@ -8,7 +8,7 @@ module ContinuousOpacity
   implicit none
   private
 
-  public :: calc_hydrogen_stimulated_emission
+  public :: get_hydrogen_stimulated_emission
   public :: get_electron_thomson_scattering,get_theta
   public :: get_hydrogen_ion_bound_free
   public :: calc_opacity_and_albedo
@@ -42,16 +42,16 @@ contains
 
   endfunction get_hydrogen_ion_bound_free
 !************************************************************************************
-  subroutine calc_hydrogen_stimulated_emission(wave1, theta, stim_factor)
+  function get_hydrogen_stimulated_emission(wave1, theta) result(stim_factor)
     real, intent(in) :: wave1  ! MUST be in angstroms
     real, intent(in), dimension(nz) :: theta  ! theta = 5040./T[K]
-    real, intent(out), dimension(nz) :: stim_factor
+    real, dimension(nz) :: stim_factor
     real :: chi
 
     chi = 1.2398e4 * wave1
     stim_factor = 1 - 10**(-chi*theta)
 
-  endsubroutine calc_hydrogen_stimulated_emission
+  endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
        temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
