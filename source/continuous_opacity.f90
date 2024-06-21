@@ -70,7 +70,7 @@ contains
     call calc_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, kappa_Hm_bf)
     call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
 
-    kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)/mp
+    kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
 
     call calc_kappa_H_ff(wave_angstrom, temp, stim_factor * ionization_factor,&
