@@ -24,36 +24,33 @@ contains
 
   endsubroutine read_gas_state_input
 !******************************************
-  subroutine calc_hydrogen_ion_frac(rho,T,NHII_NHINHII)
-  real, dimension(nz), intent(in) :: rho,T
+  subroutine calc_hydrogen_ion_frac(rho1,TNHII_NHINHII)
+  real, dimension(nz), intent(in) :: rho1,T
   real, dimension(nz), intent(out) :: NHII_NHINHII
   real, dimension(nz) :: constants,niine_ni,C,exparg
   integer :: i
-  
-  ! calculate the Saha equation (relative fraction of adjacent ions)
-  constants = ((sqrt(2*pi*me*k_cgs*T)/h_planck)**3)
+!
+! calculate the Saha equation (relative fraction of adjacent ions)
+!
+  constants = (sqrt(2*pi*me*k_cgs*T)*h1_planck)**3
   exparg = hydrogen_ionization_eV/(k_eV*T)
-  ! index = 100.
-  ! print*, 'E/k_eV*T = ', index
   niine_ni =  constants * exp(-exparg)
     
-  C = mp / rho * niine_ni
+  C = mp * rho1 * niine_ni
 
-  NHII_NHINHII = (sqrt(C**2 + 4*C) - C)/2.
-
-  ! Limits due to machine precision mean 4C becomes unresolved next to C**2,
-  ! so manually set the ionization fraction to 1 for temperatures above 20000.
-  ! This is appropriate for our domain where the density is always less than
-  ! ~2e-9 g cm^-3. Would not be appropriate for higher densities.
+  NHII_NHINHII = .5*(sqrt(C**2 + 4*C) - C)
+!
+! Limits due to machine precision mean 4C becomes unresolved next to C**2,
+! so manually set the ionization fraction to 1 for temperatures above 20000.
+! This is appropriate for our domain where the density is always less than
+! ~2e-9 g cm^-3. Would not be appropriate for higher densities.
+!
   do i=1,nz
-    ! print*, T(i), fully_ionized_T
     if (T(i) > fully_ionized_T) then 
       NHII_NHINHII(i)=1.
     endif
   enddo
-  ! print*, NHII_NHINHII
-  ! NHII_NHINHII = merge(1.0, NHII_NHINHII, T>fully_ionized_T)
-  
+!
 endsubroutine calc_hydrogen_ion_frac
 !******************************************
 subroutine solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
