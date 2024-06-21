@@ -42,13 +42,13 @@ contains
 
   endfunction get_hydrogen_ion_bound_free
 !************************************************************************************
-  subroutine calc_hydrogen_stimulated_emission(wave, theta, stim_factor)
-    real, intent(in) :: wave  ! MUST be in angstroms
+  subroutine calc_hydrogen_stimulated_emission(wave1, theta, stim_factor)
+    real, intent(in) :: wave1  ! MUST be in angstroms
     real, intent(in), dimension(nz) :: theta  ! theta = 5040./T[K]
     real, intent(out), dimension(nz) :: stim_factor
     real :: chi
 
-    chi = 1.2398e4 / wave
+    chi = 1.2398e4 * wave1
     stim_factor = 1 - 10**(-chi*theta)
 
   endsubroutine calc_hydrogen_stimulated_emission
