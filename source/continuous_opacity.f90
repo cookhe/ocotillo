@@ -54,9 +54,9 @@ contains
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,ne,NHII_NHINHII,nHI,nHII,&
-       temp,temp1,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
+       temp,temp1,theta,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, temp, temp1, ne, NHII_NHINHII,nHI,nHII
+    real, dimension(nz) :: e_scatter,rho, temp, temp1, theta, ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     real :: wave_angstrom
@@ -66,9 +66,9 @@ contains
     intent(in)   :: e_scatter,rho,ne,temp,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    kappa_H_bf = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
+    kappa_H_bf  = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
     kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
-    call calc_kappa_Hm_ff(ne,wave_angstrom,temp,ionization_factor,kappa_Hm_ff)
+    kappa_Hm_ff = get_kappa_Hm_ff(ne,wave_angstrom,temp,theta,ionization_factor)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
@@ -257,7 +257,7 @@ contains
 !
   endfunction  get_kappa_Hm_bf
 !************************************************************************************
-  subroutine calc_kappa_Hm_ff(ne, waves, temp, factor, kappa_Hm_ff)
+  function get_kappa_Hm_ff(ne, waves, temp, theta, factor) result(kappa_Hm_ff)
 !
 !    """H- ion free-free interaction cross section per HI per unit                                 
 !    electron pressure.                                                                            
@@ -265,13 +265,11 @@ contains
     real, dimension(nz) :: ne,temp,kappa_Hm_ff,theta,factor,flam
     real, dimension(3,5) :: b
     real, dimension(3) :: f
-    real :: k,waves
+    real :: waves
     integer i,j
 !    
-    intent(in) :: ne,waves,temp
-    intent(out) :: kappa_Hm_ff
+    intent(in) :: ne,waves,temp, theta
 !
-    k = k_cgs  ! erg K^-1  - Boltzmann constant                                            
     ! fit coefficients
     
     b = transpose(reshape(                                   &
@@ -287,13 +285,11 @@ contains
       enddo
     enddo
 
-    theta = 5040./temp
-
     flam = f(1) + f(2)*log10(theta) + f(3)*log10(theta)**2 - 26
 
-    kappa_Hm_ff = factor * ne * k * temp * 10**(flam)
+    kappa_Hm_ff = factor * ne * k_cgs * temp * 10**(flam)
 
-  endsubroutine calc_kappa_Hm_ff
+  endfunction get_kappa_Hm_ff
 !************************************************************************************
   subroutine gaunt(n, waves, gaunt_factor)
 !
