@@ -11,7 +11,7 @@ module ReadAthena
   public :: read_from_athena
 
   character(len=90)   :: RunName
-  character(len=90)   :: FileName
+  character(len=90)   :: datadir="./output_athena/distributed"
   
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
@@ -19,13 +19,13 @@ module ReadAthena
   integer :: nproc=1
   
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-       aspect_ratio,mean_molecular_weight,rho0,nproc
+       aspect_ratio,mean_molecular_weight,rho0,nproc,datadir
 
   
 contains
 !************************************************************************************
     subroutine read_from_athena(z,dz,rho,temp)
-  
+!
       integer(c_int) :: coordsys
       integer(c_int) :: nxloc,nyloc,nzloc
       integer(c_int) :: nvar,nscalars
@@ -37,15 +37,14 @@ contains
       real(c_double), allocatable :: zloc(:)
       real(c_double), allocatable :: rho_loc(:,:,:),rux_loc(:,:,:)
       real(c_double), allocatable :: ruy_loc(:,:,:),ruz_loc(:,:,:),eng_loc(:,:,:)
-      !!!!!
-      
+!
       real, intent(out) :: dz
       real, dimension(mz), intent(out) :: z
       real, dimension(nz,ny,nx), intent(out) :: rho,temp
       real, dimension(nz,ny,nx) :: ru2,eng
       real, dimension(nz) :: zn      
       integer :: iproc
-      character(len=90)   :: Head,Tail
+      character(len=90)   :: head,tail,filename,sproc,base
 
   !order: 
   !coordsys,nx,ny,nz,nvar,nscalars,selfgrav_boolean, particles_boolean,gamma1,cs,t,dt,x,y,z,rho,rux,ruy,ruz,eng
@@ -54,63 +53,37 @@ contains
       read(40,nml=athena_input)
       close(40)
 
-      Head="./output_athena/distributed/id"
-      Tail=".0000.bin"
+      base=trim(datadir)//"/id"
+      tail=".0000.bin"
       
       do iproc=0,nproc-1
-         
+        sproc=itoa(iproc)
+        head=trim(base)//trim(sproc)//"/"//trim(RunName)
         if (iproc==0) then 
-          FileName= trim(Head)//trim(itoa(iproc))//"/"//trim(RunName)//trim(Tail)
+          filename= trim(head)//trim(tail)
         else
-           FileName= trim(Head)//trim(itoa(iproc))//"/"//trim(RunName)//"-id"//trim(itoa(iproc))//trim(Tail)
+          filename= trim(head)//"-id"//trim(sproc)//trim(tail)
         endif
-        if (file_exists(trim(Filename)) .eqv. .false.) then
-           print*,"File ",trim(Filename)," does not exist"
-           stop
+        if (file_exists(trim(filename)) .eqv. .false.) then
+          print*,"iproc=",iproc
+          print*,"File ",trim(filename)," does not exist"
+          stop
         endif
 
-        print*,"iproc=",iproc
-        print*,trim(FileName)
-        print*,''        
+        print*,"Reading ",trim(FileName)
         open(99, file = trim(FileName), form = 'unformatted', ACCESS='stream')
 
-        
         read(99) coordsys
-        print*,'coordsys',coordsys
-        print*,''
-        
         read(99) nxloc,nyloc,nzloc,nvar,nscalars
-        print*,'nxloc,nyloc,nzloc,nvar,nscalars',nxloc,nyloc,nzloc,nvar,nscalars
-        print*,''
-        
         read(99) selfgrav_boolean, particles_boolean
-        print*,'selfgrav_boolean, particles_boolean',selfgrav_boolean, particles_boolean
-        print*,''
-        
         read(99) gamma1,cs
-        print*,'gamma1,cs',gamma1,cs
-        print*,''
-        
         read(99) t,dt
-        print*,'t, dt',t, dt        
-        print*,''
-
-        allocate(xloc(nxloc))
-        read(99) xloc
-        print*,'xloc=',xloc
-        print*,''
-        deallocate(xloc)
-
-        allocate(yloc(nyloc))
-        read(99) yloc
-        print*,'yloc=',yloc
-        print*,''
-        deallocate(yloc)
+        
+        allocate(xloc(nxloc)); read(99) xloc; deallocate(xloc)
+        allocate(yloc(nyloc)); read(99) yloc; deallocate(yloc)
 
         allocate(zloc(nzloc))        
         read(99) zloc
-        print*,'zloc=',zloc
-        print*,''
         if (nproc==1) zn=zloc
         deallocate(zloc)
         
@@ -140,49 +113,33 @@ contains
 
         allocate(rho_loc(nzloc,nyloc,nxloc))
         read(99) rho_loc
-        print*,'rho=',rho_loc(:,1,1)
-        print*,''
         if (nproc==1) rho=rho_loc
         deallocate(rho_loc)
 
         allocate(rux_loc(nzloc,nyloc,nxloc))
         read(99) rux_loc
-        print*,'rux_loc=',rux_loc(:,1,1)
-        print*,''
         if (nproc==1) ru2=rux_loc**2
         deallocate(rux_loc)
 
         allocate(ruy_loc(nzloc,nyloc,nxloc))
         read(99) ruy_loc
-        print*,'ruy_loc=',ruy_loc(:,1,1)
-        print*,''
         if (nproc==1) ru2=ru2+ruy_loc**2
         deallocate(ruy_loc)
         
         allocate(ruz_loc(nzloc,nyloc,nxloc))
         read(99) ruz_loc
-        print*,'ruz_loc=',ruz_loc(:,1,1)
-        print*,''
         if (nproc==1) ru2=ru2+ruz_loc**2
         deallocate(ruz_loc)
         
         allocate(eng_loc(nzloc,nyloc,nxloc))
         read(99) eng_loc
-        print*,'eng_loc=',eng_loc(:,1,1)        
-        print*,''
         if (nproc==1) eng=eng_loc
         deallocate(eng_loc)
         
-        print*,'!!!!!!!!!!!!!!!!'
-
-        print*,''
-        
         close(99)        
-        !print*,'closed'
       enddo
 !  
-      print*,'done reading'
-      !stop
+      print*,"Done reading all files"
 !
       call postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
 !
@@ -191,7 +148,6 @@ contains
     subroutine postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
 
       integer :: i,ix,iy
-      integer :: nxc,nyc,nzc
       real :: gamma,gamma_inv,rg,Mbh,rr,g0,Omega,H
       real :: unit_time,unit_length,unit_velocity
       real :: unit_density,unit_mass,unit_energy,unit_edens
@@ -225,25 +181,19 @@ contains
 !      
       dz=(zn(nz)-zn(1))/(nz-1)
       z(n1:n2)=zn
-!
 ! Fill in ghost zones
-!
       do i=1,ng
          z(n1-i) = z(n1) - i*dz
          z(n2+i) = z(n2) + i*dz
       enddo
 !
       rho = rho*unit_density
-!
       ru2 = ru2*(unit_density*unit_velocity)**2
-      !rux = rux*unit_density*unit_velocity
-      !ruy = ruy*unit_density*unit_velocity
-      !ruz = ruz*unit_density*unit_velocity
+      eng = eng*unit_energy/unit_length**3      
 !
       gamma = 1+gamma1
       gamma_inv = 1./gamma
 !
-      eng = eng*unit_energy/unit_length**3
       do ix=1,nx
         do iy=1,ny
           rho1=1./rho(:,iy,ix)
