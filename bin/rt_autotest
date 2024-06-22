@@ -1,0 +1,50 @@
+#!/bin/sh
+#                      rt_autotest
+#                     -------------
+# Description:
+#   Link files into a local source directory
+#
+#-----------------------------------------------------------------------------
+specrt_home_path=$SPECRT_HOME
+old_dir="`pwd`"
+
+datadir=$SPECRT_HOME"/samples/GreyIsothermal"
+echo $datadir
+cd $datadir
+make cleanall
+rt_setup
+make
+./source/flux_feautrier.x
+diff output/intensity.dat reference.out
+echo 
+
+datadir=$SPECRT_HOME"/samples/NongreyAGN"
+echo $datadir
+cd $datadir
+make cleanall
+rt_setup
+make
+./source/flux_feautrier.x
+diff output/intensity.dat reference.out
+echo 
+
+datadir=$SPECRT_HOME"/samples/ReadFromAthena"
+echo $datadir
+cd $datadir
+make cleanall
+rt_setup
+make
+./source/flux_feautrier.x
+diff output/intensity.dat reference.out
+cd $old_dir
+
+datadir=$SPECRT_HOME"/samples/multiInTest"
+echo $datadir
+cd $datadir
+make cleanall
+rt_setup
+make
+./source/flux_feautrier.x
+diff output/intensity.dat reference.out
+cd $old_dir
+
