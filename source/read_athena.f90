@@ -35,8 +35,7 @@ contains
       real(c_double), allocatable :: xloc(:)
       real(c_double), allocatable :: yloc(:)
       real(c_double), allocatable :: zloc(:)
-      real(c_double), allocatable :: rho_loc(:,:,:),rux_loc(:,:,:)
-      real(c_double), allocatable :: ruy_loc(:,:,:),ruz_loc(:,:,:),eng_loc(:,:,:)
+      real(c_double), allocatable :: tmp_loc(:,:,:)
 !
       real, intent(out) :: dz
       real, dimension(mz), intent(out) :: z
@@ -45,6 +44,11 @@ contains
       real, dimension(nz) :: zn      
       integer :: iproc
       character(len=90)   :: head,tail,filename,sproc,base
+
+      real :: dx,dy
+      real :: x0,y0,z0
+      integer :: ix0,iy0,iz0
+      integer :: ix1,iy1,iz1
 
   !order: 
   !coordsys,nx,ny,nz,nvar,nscalars,selfgrav_boolean, particles_boolean,gamma1,cs,t,dt,x,y,z,rho,rux,ruy,ruz,eng
@@ -78,63 +82,85 @@ contains
         read(99) selfgrav_boolean, particles_boolean
         read(99) gamma1,cs
         read(99) t,dt
-        
-        allocate(xloc(nxloc)); read(99) xloc; deallocate(xloc)
-        allocate(yloc(nyloc)); read(99) yloc; deallocate(yloc)
+
+        allocate(xloc(nxloc)); read(99) xloc!; deallocate(xloc)
+        allocate(yloc(nyloc)); read(99) yloc!; deallocate(yloc)
 
         allocate(zloc(nzloc))        
         read(99) zloc
         if (nproc==1) zn=zloc
-        deallocate(zloc)
+!        deallocate(zloc)
+
+        print*,xloc
+        print*,yloc
+        print*,zloc
         
-        !print*,"Athena input x dimensionality=",nxc
-        !if (nxc /= nx) then
-        !   print*,"RT x-dimensionality from resolution.in =",nx
-        !   print*,"The Athena x dimensionality does not match the chosen for the RT post-processing. Fix."
-        !   print*,''           
-        !   !stop
-        !endif
+        if (iproc==0) then
+            x0=xloc(1)
+            y0=yloc(1)
+            z0=zloc(1)
+            dx=xloc(2)-xloc(1)
+            dy=yloc(2)-yloc(1)
+            dz=zloc(2)-zloc(1)
+         endif
+
+        ix0 = nint((xloc(1)-x0)/dx) + 1
+        ix1 = ix0 + nxloc - 1
+
+        iy0 = nint((yloc(1)-y0)/dy) + 1
+        iy1 = iy0 + nyloc - 1
+
+        iz0 = nint((zloc(1)-z0)/dz) + 1
+        iz1 = iz0 + nzloc - 1
 !
-        !print*,"Athena input y dimensionality=",nyc
-        !if (nyc /= ny) then
-        !   print*,"RT y-dimensionality from resolution.in =",ny
-        !   print*,"The Athena y dimensionality does not match the chosen for the RT post-processing. Fix."
-        !   print*,''           
-        !   !stop
-        !endif
+! Sanity check
 !
-        !print*,"Athena input z dimensionality=",nzc
-        !if (nzc /= nz) then
-        !   print*,"RT z-dimensionality from resolution.in =",nz
-        !   print*,"The Athena z dimensionality does not match the chosen for the RT post-processing. Fix."
-        !   print*,''           
-        !   !stop
-        !endif
+        if (iproc==nproc-1) then 
+          if (ix1 /= nx) then
+            print*,"Resolution in x from Athena = ",ix1
+            print*,"RT x-dimensionality from resolution.in = ",nx
+            print*,"The Athena x dimensionality does not match the chosen for the RT post-processing. Fix."
+            stop
+          endif
+!
+          if (iy1 /= ny) then
+            print*,"Resolution in y from Athena = ",iy1
+            print*,"RT y-dimensionality from resolution.in = ",ny
+            print*,"The Athena y dimensionality does not match the chosen for the RT post-processing. Fix."
+            stop
+          endif
+!
+          if (iz1 /= nz) then
+            print*,"Resolution in z from Athena = ",iz1
+            print*,"RT z-dimensionality from resolution.in = ",nz
+            print*,"The Athena z dimensionality does not match the chosen for the RT post-processing. Fix."
+            stop
+          endif
+        endif
+!
+        allocate(tmp_loc(nzloc,nyloc,nxloc)) 
 
-        allocate(rho_loc(nzloc,nyloc,nxloc))
-        read(99) rho_loc
-        if (nproc==1) rho=rho_loc
-        deallocate(rho_loc)
-
-        allocate(rux_loc(nzloc,nyloc,nxloc))
-        read(99) rux_loc
-        if (nproc==1) ru2=rux_loc**2
-        deallocate(rux_loc)
-
-        allocate(ruy_loc(nzloc,nyloc,nxloc))
-        read(99) ruy_loc
-        if (nproc==1) ru2=ru2+ruy_loc**2
-        deallocate(ruy_loc)
+        print*,ix0,ix1
+        print*,iy0,iy1
+        print*,iz0,iz1
         
-        allocate(ruz_loc(nzloc,nyloc,nxloc))
-        read(99) ruz_loc
-        if (nproc==1) ru2=ru2+ruz_loc**2
-        deallocate(ruz_loc)
+        read(99) tmp_loc
+        rho(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
+
+        read(99) tmp_loc
+        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc**2 !rux
+
+        read(99) tmp_loc
+        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = ru2(iz0:iz1,iy0:iy1,ix0:ix1) + tmp_loc**2 !ruy
         
-        allocate(eng_loc(nzloc,nyloc,nxloc))
-        read(99) eng_loc
-        if (nproc==1) eng=eng_loc
-        deallocate(eng_loc)
+        read(99) tmp_loc
+        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = ru2(iz0:iz1,iy0:iy1,ix0:ix1) + tmp_loc**2 !ruz
+        
+        read(99) tmp_loc
+        eng(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
+        
+        deallocate(tmp_loc)
+        deallocate(xloc,yloc,zloc)
         
         close(99)        
       enddo
