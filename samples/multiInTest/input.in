@@ -1,0 +1,30 @@
+!  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim)
+&input
+  z0 = -5d15
+  z1 =  5d15
+  sigma_grey=0.4
+  lgrey=F
+/
+&temperature_input
+  isoTemp = 64857.04298198191
+  sigma = 2.54d14
+  midTemp = 61341
+  floorTemp = 2000.
+/
+&density_input
+  rho0=1d-9
+  rho_floor=1d-15
+  H=1.496d14
+/
+&gas_state_input
+  fully_ionized_T = 2.d4
+/
+&athena_input
+  RunName="agn_snova_3d"
+  nproc=4
+  Mbh_SolarMasses = 1e8
+  r0ref_rg = 1e3  !location in the disk, in units of rg
+  aspect_ratio = 0.005
+  mean_molecular_weight  = 1.0079764
+  rho0=1e-9
+/
