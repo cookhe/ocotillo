@@ -184,8 +184,7 @@ contains
 !
       real :: rg,Mbh,rr,g0,Omega,H
       real :: unit_time,unit_length,unit_velocity
-      real :: unit_density,unit_mass,unit_energy,unit_edens,unit_temperature
-!
+      real :: unit_density,unit_temperature
       integer :: i,ix,iy
 !
       Mbh   = Mbh_SolarMasses*SolarMass
@@ -197,51 +196,33 @@ contains
 !
 ! code units for conversion
 !
+      unit_density  = rho0
       unit_time     = 1./Omega
       unit_length   = H
       unit_velocity = unit_length/unit_time
-      unit_density  = rho0
-      unit_mass     = unit_density*unit_length**3
-      unit_energy   = unit_mass*unit_velocity**2
-      unit_edens    = unit_energy/unit_length**3
       unit_temperature = gamma1 * mean_molecular_weight * amu *  k1_cgs  * unit_velocity**2      
 !
+      rho = rho*unit_density      
+      temp = temp*unit_temperature
+!
       zn=zn*unit_length
-!      
       dz=(zn(nz)-zn(1))/(nz-1)
       z(n1:n2)=zn
 ! Fill in ghost zones
       do i=1,ng
-         z(n1-i) = z(n1) - i*dz
-         z(n2+i) = z(n2) + i*dz
+        z(n1-i) = z(n1) - i*dz
+        z(n2+i) = z(n2) + i*dz
       enddo
 !
-      rho = rho*unit_density
+      do ix=1,nx; do iy=1,ny
+        call calc_temperature(temp(:,iy,ix),z,lfrom_read_athena=.true.)
+      enddo; enddo
 !
-
-      
-      temp = temp * unit_temperature
-
-      do ix=1,nx
-        do iy=1,ny
-          !rho1=1./rho(:,iy,ix)
-          !ekin = 0.5*rho1*ru2(:,iy,ix)
-          !eint = eng(:,iy,ix) - ekin
-          !cs2 = gamma*gamma1 * eint * rho1
-          !temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
-!
-          call calc_temperature(temp(:,iy,ix),z,&
-               lfrom_read_athena=.true.)
-       enddo
-      enddo
-!
-      print*,'unit_time     = ',unit_time,' s'
-      print*,'unit_length   = ',unit_length,' cm'
-      print*,'unit_velocity = ',unit_velocity,' cm/s'
-      print*,'unit_density  = ',unit_density,' g/cm3'
-      print*,'unit_mass     = ',unit_mass,' g'
-      print*,'unit_energy   = ',unit_energy,' erg'
-      print*,'unit_edens    = ',unit_edens,' erg/cm3'
+      print*,'unit_time        = ',unit_time,' s'
+      print*,'unit_length      = ',unit_length,' cm'
+      print*,'unit_velocity    = ',unit_velocity,' cm/s'
+      print*,'unit_density     = ',unit_density,' g/cm3'
+      print*,'unit_temperature = ',unit_temperature,' K'
 !
       print*,'minval(rho),maxval(rho),mean(rho)',&
            minval(rho),maxval(rho),sum(rho)/(nx*ny*nz)
