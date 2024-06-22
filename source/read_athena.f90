@@ -32,17 +32,18 @@ contains
       integer(c_int) :: selfgrav_boolean, particles_boolean
       real(c_double) :: gamma1,cs
       real(c_double) :: t,dt
+!      
       real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
       real(c_double), allocatable :: tmp_loc(:,:,:)
 !
-      real, intent(out) :: dz
-      real, dimension(mz), intent(out) :: z
       real, dimension(nz,ny,nx), intent(out) :: rho,temp
-      real, dimension(nz,ny,nx) :: ru2,eng
+!
+      real, dimension(mz), intent(out) :: z
       real, dimension(nz) :: zn      
+      real, intent(out) :: dz
       integer :: iproc
       character(len=90)   :: head,tail,filename,sproc,base
-
+!
       real :: dx,dy
       real :: x0,y0,z0
       integer :: ix0,iy0,iz0
@@ -103,6 +104,11 @@ contains
 
         iz0 = nint((zloc(1)-z0)/dz) + 1
         iz1 = iz0 + nzloc - 1
+!
+! Not all processors need to do this,
+! only if that slice of z hasn't been
+! allocated yet.         
+!
         zn(iz0:iz1) = zloc
 !
 ! Sanity check
@@ -132,20 +138,30 @@ contains
 !
         allocate(tmp_loc(nzloc,nyloc,nxloc)) 
 !
+        !rho1=1./rho(:,iy,ix)
+        !ekin = 0.5*rho1*ru2(:,iy,ix)
+        !eint = eng(:,iy,ix) - ekin
+        !cs2 = gamma*gamma1 * eint * rho1
+        !temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
+
         read(99) tmp_loc
         rho(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
-
-        read(99) tmp_loc
-        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc**2 !rux
-
-        read(99) tmp_loc
-        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = ru2(iz0:iz1,iy0:iy1,ix0:ix1) + tmp_loc**2 !ruy
-        
-        read(99) tmp_loc
-        ru2(iz0:iz1,iy0:iy1,ix0:ix1) = ru2(iz0:iz1,iy0:iy1,ix0:ix1) + tmp_loc**2 !ruz
-        
-        read(99) tmp_loc
-        eng(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
+!
+! Build kinetic energy; ekin = (rux**2+ruy**2+ruz**2)/(2*rho)
+!        
+        read(99) tmp_loc !rux
+        temp(iz0:iz1,iy0:iy1,ix0:ix1) = .5*tmp_loc**2/rho(iz0:iz1,iy0:iy1,ix0:ix1)
+        read(99) tmp_loc !ruy
+        temp(iz0:iz1,iy0:iy1,ix0:ix1) = temp(iz0:iz1,iy0:iy1,ix0:ix1) + .5*tmp_loc**2/rho(iz0:iz1,iy0:iy1,ix0:ix1)
+        read(99) tmp_loc !ruz
+        temp(iz0:iz1,iy0:iy1,ix0:ix1) = temp(iz0:iz1,iy0:iy1,ix0:ix1) + .5*tmp_loc**2/rho(iz0:iz1,iy0:iy1,ix0:ix1)
+!        
+! Define internal energy; eint = eng - ekin.
+! Then the sound speed; cs2 = gamma*gamma1 * eint * rho1
+! The gammas and the constants will be added in the next subroutine 
+!        
+        read(99) tmp_loc !eng
+        temp(iz0:iz1,iy0:iy1,ix0:ix1) = (tmp_loc-temp(iz0:iz1,iy0:iy1,ix0:ix1))/rho(iz0:iz1,iy0:iy1,ix0:ix1)
         
         deallocate(tmp_loc,xloc,yloc,zloc)
         
@@ -154,24 +170,23 @@ contains
 !  
       print*,"Done reading all files"
 !
-      call postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
+      call postprocess_athena_values(rho,temp,zn,z,dz,gamma1)
 !
     endsubroutine read_from_athena
 !************************************************************************************
-    subroutine postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
-
-      integer :: i,ix,iy
-      real :: gamma,gamma_inv,rg,Mbh,rr,g0,Omega,H
-      real :: unit_time,unit_length,unit_velocity
-      real :: unit_density,unit_mass,unit_energy,unit_edens
+    subroutine postprocess_athena_values(rho,temp,zn,z,dz,gamma1)
+!
+      real, dimension(nz,ny,nx), intent(inout) :: rho, temp
+      real, dimension(mz), intent(out) :: z
+      real, dimension(nz) :: zn
       real, intent(in) :: gamma1
       real, intent(out) :: dz
-      real, dimension(nz) :: zn
-      real, dimension(nz) :: ekin,eint,cs2,rho1
-      real, dimension(mz), intent(out) :: z
-      real, dimension(nz,ny,nx) :: ru2,eng
-      real, dimension(nz,ny,nx), intent(inout) :: rho
-      real, dimension(nz,ny,nx), intent(out) :: temp
+!
+      real :: rg,Mbh,rr,g0,Omega,H
+      real :: unit_time,unit_length,unit_velocity
+      real :: unit_density,unit_mass,unit_energy,unit_edens,unit_temperature
+!
+      integer :: i,ix,iy
 !
       Mbh   = Mbh_SolarMasses*SolarMass
       rg    = 2 * (G_Newton_cgs/c_light_cgs**2) * Mbh
@@ -189,6 +204,7 @@ contains
       unit_mass     = unit_density*unit_length**3
       unit_energy   = unit_mass*unit_velocity**2
       unit_edens    = unit_energy/unit_length**3
+      unit_temperature = gamma1 * mean_molecular_weight * amu *  k1_cgs  * unit_velocity**2      
 !
       zn=zn*unit_length
 !      
@@ -201,19 +217,18 @@ contains
       enddo
 !
       rho = rho*unit_density
-      ru2 = ru2*(unit_density*unit_velocity)**2
-      eng = eng*unit_energy/unit_length**3      
 !
-      gamma = 1+gamma1
-      gamma_inv = 1./gamma
-!
+
+      
+      temp = temp * unit_temperature
+
       do ix=1,nx
         do iy=1,ny
-          rho1=1./rho(:,iy,ix)
-          ekin = 0.5*rho1*ru2(:,iy,ix)
-          eint = eng(:,iy,ix) - ekin
-          cs2 = gamma*gamma1 * eint * rho1
-          temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
+          !rho1=1./rho(:,iy,ix)
+          !ekin = 0.5*rho1*ru2(:,iy,ix)
+          !eint = eng(:,iy,ix) - ekin
+          !cs2 = gamma*gamma1 * eint * rho1
+          !temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
 !
           call calc_temperature(temp(:,iy,ix),z,&
                lfrom_read_athena=.true.)
