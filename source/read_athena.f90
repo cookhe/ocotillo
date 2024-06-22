@@ -42,7 +42,7 @@ contains
       real, intent(out) :: dz
       real, dimension(mz), intent(out) :: z
       real, dimension(nz,ny,nx), intent(out) :: rho,temp
-      real, dimension(nz,ny,nx) :: rux,ruy,ruz,eng
+      real, dimension(nz,ny,nx) :: ru2,eng
       real, dimension(nz) :: zn      
       integer :: iproc
       character(len=90)   :: Head,Tail
@@ -149,21 +149,21 @@ contains
         read(99) rux_loc
         print*,'rux_loc=',rux_loc(:,1,1)
         print*,''
-        if (nproc==1) rux=rux_loc
+        if (nproc==1) ru2=rux_loc**2
         deallocate(rux_loc)
 
         allocate(ruy_loc(nzloc,nyloc,nxloc))
         read(99) ruy_loc
         print*,'ruy_loc=',ruy_loc(:,1,1)
         print*,''
-        if (nproc==1) ruy=ruy_loc
+        if (nproc==1) ru2=ru2+ruy_loc**2
         deallocate(ruy_loc)
         
         allocate(ruz_loc(nzloc,nyloc,nxloc))
         read(99) ruz_loc
         print*,'ruz_loc=',ruz_loc(:,1,1)
         print*,''
-        if (nproc==1) ruz=ruz_loc
+        if (nproc==1) ru2=ru2+ruz_loc**2
         deallocate(ruz_loc)
         
         allocate(eng_loc(nzloc,nyloc,nxloc))
@@ -184,11 +184,11 @@ contains
       print*,'done reading'
       !stop
 !
-      call postprocess_athena_values(zn,gamma1,rho,rux,ruy,ruz,eng,z,temp,dz)
+      call postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
 !
     endsubroutine read_from_athena
 !************************************************************************************
-    subroutine postprocess_athena_values(zn,gamma1,rho,rux,ruy,ruz,eng,z,temp,dz)
+    subroutine postprocess_athena_values(zn,gamma1,rho,ru2,eng,z,temp,dz)
 
       integer :: i,ix,iy
       integer :: nxc,nyc,nzc
@@ -200,7 +200,7 @@ contains
       real, dimension(nz) :: zn
       real, dimension(nz) :: ekin,eint,cs2,rho1
       real, dimension(mz), intent(out) :: z
-      real, dimension(nz,ny,nx) :: rux,ruy,ruz,eng
+      real, dimension(nz,ny,nx) :: ru2,eng
       real, dimension(nz,ny,nx), intent(inout) :: rho
       real, dimension(nz,ny,nx), intent(out) :: temp
 !
@@ -235,9 +235,10 @@ contains
 !
       rho = rho*unit_density
 !
-      rux = rux*unit_density*unit_velocity
-      ruy = ruy*unit_density*unit_velocity
-      ruz = ruz*unit_density*unit_velocity
+      ru2 = ru2*(unit_density*unit_velocity)**2
+      !rux = rux*unit_density*unit_velocity
+      !ruy = ruy*unit_density*unit_velocity
+      !ruz = ruz*unit_density*unit_velocity
 !
       gamma = 1+gamma1
       gamma_inv = 1./gamma
@@ -246,9 +247,7 @@ contains
       do ix=1,nx
         do iy=1,ny
           rho1=1./rho(:,iy,ix)
-          ekin = 0.5*rho1*(rux(1:nz,iy,ix)**2 + &
-                           ruy(1:nz,iy,ix)**2 + &
-                           ruz(1:nz,iy,ix)**2)
+          ekin = 0.5*rho1*ru2(:,iy,ix)
           eint = eng(:,iy,ix) - ekin
           cs2 = gamma*gamma1 * eint * rho1
           temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
