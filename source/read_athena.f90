@@ -30,11 +30,9 @@ contains
       integer(c_int) :: nxloc,nyloc,nzloc
       integer(c_int) :: nvar,nscalars
       integer(c_int) :: selfgrav_boolean, particles_boolean
-      real(c_double)       :: gamma1,cs
-      real(c_double)       :: t,dt
-      real(c_double), allocatable :: xloc(:)
-      real(c_double), allocatable :: yloc(:)
-      real(c_double), allocatable :: zloc(:)
+      real(c_double) :: gamma1,cs
+      real(c_double) :: t,dt
+      real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
       real(c_double), allocatable :: tmp_loc(:,:,:)
 !
       real, intent(out) :: dz
@@ -91,10 +89,6 @@ contains
         if (nproc==1) zn=zloc
 !        deallocate(zloc)
 
-        print*,xloc
-        print*,yloc
-        print*,zloc
-        
         if (iproc==0) then
             x0=xloc(1)
             y0=yloc(1)
@@ -139,11 +133,7 @@ contains
         endif
 !
         allocate(tmp_loc(nzloc,nyloc,nxloc)) 
-
-        print*,ix0,ix1
-        print*,iy0,iy1
-        print*,iz0,iz1
-        
+!
         read(99) tmp_loc
         rho(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
 
