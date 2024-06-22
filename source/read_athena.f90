@@ -81,14 +81,11 @@ contains
         read(99) gamma1,cs
         read(99) t,dt
 
-        allocate(xloc(nxloc)); read(99) xloc!; deallocate(xloc)
-        allocate(yloc(nyloc)); read(99) yloc!; deallocate(yloc)
-
-        allocate(zloc(nzloc))        
-        read(99) zloc
+        allocate(xloc(nxloc)); read(99) xloc
+        allocate(yloc(nyloc)); read(99) yloc
+        allocate(zloc(nzloc)); read(99) zloc
         if (nproc==1) zn=zloc
-!        deallocate(zloc)
-
+!
         if (iproc==0) then
             x0=xloc(1)
             y0=yloc(1)
@@ -106,6 +103,7 @@ contains
 
         iz0 = nint((zloc(1)-z0)/dz) + 1
         iz1 = iz0 + nzloc - 1
+        zn(iz0:iz1) = zloc
 !
 ! Sanity check
 !
@@ -149,8 +147,7 @@ contains
         read(99) tmp_loc
         eng(iz0:iz1,iy0:iy1,ix0:ix1) = tmp_loc
         
-        deallocate(tmp_loc)
-        deallocate(xloc,yloc,zloc)
+        deallocate(tmp_loc,xloc,yloc,zloc)
         
         close(99)        
       enddo
