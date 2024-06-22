@@ -9,41 +9,41 @@ program flux_feautrier
 
   implicit none
 
-  real, dimension(mz,nw) :: U
+  real, dimension(mz,ny,nx,nw) :: U
+  real, dimension(nz,ny,nx,nw) :: absorp_coeff
+  real, dimension(nz,ny,nx) :: rho3d,temp3d
   real, dimension(nz,nw) :: V,Ip,Im
-  real, dimension(nz,nw) :: absorp_coeff
+!
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
-
-  integer :: iw,ix,iy
-  integer :: log_overflow_limit
-
-  real :: sigma_grey
-  real, dimension(nz,ny,nx) :: rho3d,temp3d
   real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
-  real, dimension(nw) :: waves_cm,waves1_cm
-  real, dimension(nw) :: waves_angstrom,waves1_angstrom
-
   real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
+  real, dimension(nw) :: waves_cm,waves1_cm
+  real, dimension(nw) :: waves_angstrom,waves1_angstrom
+!
   real :: wave_cm,wave_angstrom,wave1_cm,wave1_angstrom
   real :: dz,z0,z1
   real :: start, finish
   real :: w0=3000,w1=5000
+  real :: sigma_grey
+!
+  integer :: iw,ix,iy
+  integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
 !
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
-!  
-!  Read the input namelist with the user-defined parameters. 
-!  
+!
+!  Read the input namelist with the user-defined parameters.
+!
   open(20,file='./input.in')
   read(20,nml=input)
   close(20)
-!    
+!
 ! Do a sanity check for grey RT
 !
   if (lgrey.and.(nw /= 1)) then
@@ -117,10 +117,10 @@ program flux_feautrier
 ! Solve the system of equations
 !
          if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
-         call tridag(aa, bb, cc, dd, U(n1:n2,iw))
-         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iw)), maxval(U(n1:n2,iw))
+         call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
+         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
 !
-         absorp_coeff(:,iw)=opacity
+         absorp_coeff(:,iy,ix,iw)=opacity
 !
       enddo wavelength
     enddo yloop
@@ -133,14 +133,15 @@ program flux_feautrier
   print*,"Execution time =",(finish-start)/(nz*ny*nx*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
 !
-! Calculate post-processing quantities: flux and intensities. 
+! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
-  call calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
+  call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
 !
 ! Write output
 !
   call output_grid(z)
-  call output_data(U,V,Ip,Im)
+  call output_ascii(U(:,ny,nx,:),V,Ip,Im)
+  call output_binary(U,absorp_coeff,z)
 ! 
 endprogram flux_feautrier
 !***********************************************************************

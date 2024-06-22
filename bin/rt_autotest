@@ -15,7 +15,7 @@ make cleanall
 rt_setup
 make
 ./source/flux_feautrier.x
-diff output/intensity.dat reference.out
+diff output/diagnostics.dat reference.out
 echo 
 
 datadir=$SPECRT_HOME"/samples/NongreyAGN"
@@ -25,7 +25,7 @@ make cleanall
 rt_setup
 make
 ./source/flux_feautrier.x
-diff output/intensity.dat reference.out
+diff output/diagnostics.dat reference.out
 echo 
 
 datadir=$SPECRT_HOME"/samples/ReadFromAthena"
@@ -35,7 +35,7 @@ make cleanall
 rt_setup
 make
 ./source/flux_feautrier.x
-diff output/intensity.dat reference.out
+diff output/diagnostics.dat reference.out
 cd $old_dir
 
 datadir=$SPECRT_HOME"/samples/multiInTest"
@@ -45,6 +45,6 @@ make cleanall
 rt_setup
 make
 ./source/flux_feautrier.x
-diff output/intensity.dat reference.out
+diff output/diagnostics.dat reference.out
 cd $old_dir
 
