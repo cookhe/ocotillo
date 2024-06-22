@@ -20,7 +20,7 @@
   fully_ionized_T = 2.d4
 /
 &athena_input
-  FileName="./agn_snova_3d.0000.bin"
+  RunName="agn_snova_3d"
   Mbh_SolarMasses = 1e8
   r0ref_rg = 1e3  !location in the disk, in units of rg
   aspect_ratio = 0.005
