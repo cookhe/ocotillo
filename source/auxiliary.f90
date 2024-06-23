@@ -188,16 +188,16 @@ contains
     real, dimension(nz,ny,nx,nw) :: absorp_coeff
     real, dimension(mz) :: z
 
-    open(35, file='output/mean_intensity.fvar', status='replace')
-    write(35,*) U
+    open(35, file='output/mean_intensity.fvar', form='unformatted',status='replace',action='write')
+    write(35) U
     close(35)
 
-    open(45, file='output/absorption_coefficients.fvar', status='replace')
-    write(45,*) absorp_coeff
+    open(45, file='output/absorption_coefficients.fvar', form='unformatted',status='replace',action='write')
+    write(45) absorp_coeff
     close(45)
 
-    open(55, file='output/zgrid.fvar', status='replace')
-    write(55,*) z
+    open(55, file='output/zgrid.fvar', form='unformatted',status='replace',action='write')
+    write(55) z
     close(55)
 
   endsubroutine output_binary
