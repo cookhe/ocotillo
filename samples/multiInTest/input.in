@@ -1,4 +1,4 @@
-!  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim)
+!  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim) 
 &input
   z0 = -5d15
   z1 =  5d15
@@ -20,8 +20,16 @@
   fully_ionized_T = 2.d4
 /
 &athena_input
+!
+! For reading
+!
+  datadir="./output_athena/distributed"
   RunName="agn_snova_3d"
   nproc=4
+  snapshot='0001'
+!
+! For post-processinf
+!
   Mbh_SolarMasses = 1e8
   r0ref_rg = 1e3  !location in the disk, in units of rg
   aspect_ratio = 0.005
