@@ -162,7 +162,7 @@ contains
     open(10,file="output/diagnostics.dat",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
-        write(unit=10,FMT=*) i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
+        write(unit=10,FMT="(2I6,4e20.10)") i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
       enddo
     enddo
     close(10)
