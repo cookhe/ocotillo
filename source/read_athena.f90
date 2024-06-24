@@ -12,14 +12,15 @@ module ReadAthena
 
   character(len=90)   :: RunName
   character(len=90)   :: datadir="./output_athena/distributed"
-  
+  character(len=90)   :: snapshot="0000"
+
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
 
   integer :: nproc=1
   
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-       aspect_ratio,mean_molecular_weight,rho0,nproc,datadir
+       aspect_ratio,mean_molecular_weight,rho0,nproc,datadir,snapshot
 
   
 contains
@@ -57,7 +58,7 @@ contains
       close(40)
 
       base=trim(datadir)//"/id"
-      tail=".0000.bin"
+      tail="."//trim(snapshot)//".bin"
       
       do iproc=0,nproc-1
         sproc=itoa(iproc)
