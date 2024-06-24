@@ -12,33 +12,35 @@ if [ ! -f input_orig.in ]; then
     cp input.in input_orig.in
 fi
     
-nsnap=1
+nsnap=15
 
 for ((n=0; n <= $nsnap; n++)); 
 do
 
-    if [ $n > 10 ]; then
-	nzeros='000'
-    elif [ $n >= 10 && $n < 100 ]; then
-	nzeros='00'
-    elif [ $n >= 100 && $n < 1000 ]; then
-	nzeros='0'
-    elif [ $n >= 1000 ]; then    
-	nzeros=''
+    if [ $n -lt 10 ]; then
+	strn="000"$n
+    elif [ $n -lt 100 ]; then
+	strn="00"$n
+    elif [ $n -lt 1000 ]; then
+	strn="0"$n
+    elif [ $n -ge 1000 ]; then
+	strn=$n
     else
 	echo "too many snapshots."
     fi
+    echo $strn
 
     # Replace the snapshot line in the input file
-    sed "s/snapshot=.*/snapshot='$nzeros$n'/" input_orig.in > input.in
+    sed "s/snapshot=.*/snapshot='$strn'/" input_orig.in > input.in
     if [ ! -d output ]; then
 	mkdir output
     fi
 
+    # Run the code with the correct input file for the snapshot
     ./source/flux_feautrier.x
     
-# Rewrite the output snapshot if it already exists
-    datadir="output_snapshot"$nzeros$n
+    # Rewrite the output snapshot if it already exists
+    datadir="output_snapshot"$strn
     if [ -d $datadir ]; then
 	rm -rf $datadir
     fi
