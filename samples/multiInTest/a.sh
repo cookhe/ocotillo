@@ -16,7 +16,7 @@ nsnap=15
 
 for ((n=0; n <= $nsnap; n++)); 
 do
-
+    # Set the number of zeros before the snapshot number   
     if [ $n -lt 10 ]; then
 	strn="000"$n
     elif [ $n -ge  10 -a $n -lt  100 ]; then
@@ -28,7 +28,6 @@ do
     else
 	echo "too many snapshots."
     fi
-    echo $strn
 
     # Replace the snapshot line in the input file
     sed "s/snapshot=.*/snapshot='$strn'/" input_orig.in > input.in
