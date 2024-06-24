@@ -19,9 +19,9 @@ do
 
     if [ $n -lt 10 ]; then
 	strn="000"$n
-    elif [ $n -lt 100 ]; then
+    elif [ $n -ge  10 -a $n -lt  100 ]; then
 	strn="00"$n
-    elif [ $n -lt 1000 ]; then
+    elif [ $n -ge 100 -a $n -lt 1000 ]; then
 	strn="0"$n
     elif [ $n -ge 1000 ]; then
 	strn=$n
