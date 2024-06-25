@@ -13,8 +13,13 @@ module ContinuousOpacity
   public :: get_hydrogen_ion_bound_free
   public :: calc_opacity_and_albedo
   public :: grey_parameters
+  public :: pre_calc_opacity_quantities
 
 contains
+!************************************************************************************
+  subroutine pre_calc_opacity_quantities
+
+  endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
   function get_electron_thomson_scattering(number_density, nHII) result(e_scatter)
     real, intent(in), dimension(nz) :: number_density, nHII
@@ -54,16 +59,17 @@ contains
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-       temp,temp1,theta,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
+       temp,temp1,theta,theta1,wave_angstrom,wave_cm,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, ne, NHII_NHINHII,nHI,nHII
+    real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
-    real :: wave_angstrom
+    real :: wave_angstrom, wave_cm
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
     
-    intent(in)   :: e_scatter,rho,rho1,ne,temp,temp1,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
+    intent(in)   :: e_scatter,rho,rho1,ne,temp,temp1,theta,theta1
+    intent(in)   :: wave_angstrom,wave_cm,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
     kappa_H_bf  = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
