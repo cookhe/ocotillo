@@ -29,15 +29,14 @@ contains
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
          (/ size(b_coeff, 2), size(b_coeff, 1) /)))
 
-
   endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
-  function get_electron_thomson_scattering(number_density, nHII) result(e_scatter)
-    real, intent(in), dimension(nz) :: number_density, nHII
+  function get_electron_thomson_scattering(inv_number_density, nHII) result(e_scatter)
+    real, intent(in), dimension(nz) :: inv_number_density, nHII
     real, dimension(nz) ::  e_scatter
     real :: alpha_e = 0.6648e-24 ! coefficient
 
-    e_scatter = alpha_e * (nHII / number_density)  
+    e_scatter = alpha_e * nHII * inv_number_density
 
   endfunction get_electron_thomson_scattering
 !************************************************************************************

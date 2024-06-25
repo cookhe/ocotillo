@@ -18,7 +18,8 @@ program flux_feautrier
   real, dimension(nz) :: aa,bb,cc,dd
   real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
-  real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
+  real, dimension(nz) :: NHII_NHINHII,number_density,inv_number_density
+  real, dimension(nz) :: nHII,nHI,ne,ionization_factor
   real, dimension(nz) :: e_scatter,theta,theta1,electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
@@ -86,9 +87,9 @@ program flux_feautrier
       rho1=1./rho
       T1=1./T
       call calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
-      call solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
+      call solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_density,nHI,nHII,ne,ionization_factor)
       electron_pressure = get_electron_pressure(ne,T)
-      e_scatter         = get_electron_thomson_scattering(number_density,nHII)
+      e_scatter         = get_electron_thomson_scattering(inv_number_density,nHII)
       theta             = get_theta(T1)
       theta1            = 1./theta
       hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)

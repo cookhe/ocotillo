@@ -53,12 +53,14 @@ contains
 !
 endsubroutine calc_hydrogen_ion_frac
 !******************************************
-subroutine solve_gas_state(rho,NHII_NHINHII,number_density,nHI,nHII,ne,ionization_factor)
-  real, dimension(nz), intent(in) :: rho,NHII_NHINHII
-  real, dimension(nz), intent(out) :: number_density,nHI,nHII,ne,ionization_factor
+subroutine solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_density,&
+     nHI,nHII,ne,ionization_factor)
+  real, dimension(nz), intent(in) :: rho,rho1,NHII_NHINHII
+  real, dimension(nz), intent(out) :: number_density,inv_number_density,nHI,nHII,ne,ionization_factor
   integer :: i
 
   number_density = rho*mp1
+  inv_number_density = rho1*mp
   nHII = NHII_NHINHII * number_density
   nHI = number_density - nHII
   ne = nHII
