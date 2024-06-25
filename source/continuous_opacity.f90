@@ -15,6 +15,9 @@ module ContinuousOpacity
   public :: grey_parameters
   public :: pre_calc_opacity_quantities
 
+  real :: switch_ionfraction=1e-2
+  real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
+
 contains
 !************************************************************************************
   subroutine pre_calc_opacity_quantities
@@ -153,14 +156,12 @@ contains
     real :: g_ff,energyfactor,kappa_H_ff,opacity_bremsstrahlung
     real :: alpha0=1.0443e-26     ! absorption per electron
     real :: Rangstrom=1.0968e-3   ! Rcm = 2 * pi**2 * me * e**4 / (h**3 * c)
-    real :: chi1,waves,switch_ionfraction
+    real :: chi1,waves
     integer :: i
 !
     intent(in) :: waves, temp, theta, theta1, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII
     intent(inout) :: kappa_rad,opacity
 !    
-    switch_ionfraction=1e-2
-
     chi1 = waves/1.2398e4
 
     do i=1,nz
@@ -185,25 +186,21 @@ contains
 !************************************************************************************
   subroutine bremsstrahlung_absorptionCoeff(frequency, temperature, nelectrons, nprotons, zprotons,kappaRho)
 
-    real :: h,kb,ln_const,gaunt
+    real :: gaunt
     real :: frequency, temperature, nelectrons, nprotons, zprotons
     real :: ln_physQuant,kappaRho
 
     intent(in) :: frequency, temperature, nelectrons, nprotons, zprotons
     intent(out) :: kappaRho
     
-    h=h_planck
-    kb=k_cgs
-    
-    ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb)
-
-    gaunt = log(exp(5.960 - sqrt(3.)/pi * log(frequency/1e9 * (temperature/1e4)**(-1.5))) + exp(1.))
+    !gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency*1e-9 * (temperature*1e-4)**(-1.5))) + exp1)
+    gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency/1e9 * (temperature*1e-4)**(-1.5))) + exp1)
 
     ln_physQuant = log(nelectrons*nprotons) + &
          2*log(zprotons) - &
          0.5*log(temperature) - &
          3*log(frequency) + &
-         log((1 - exp(-h*frequency/(kb*temperature))))
+         log((1 - exp(-h_planck*frequency*k1_cgs/(temperature))))
 
     kappaRho = exp(ln_const) * exp(ln_physQuant) * gaunt
 
