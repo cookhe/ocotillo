@@ -19,7 +19,7 @@ program flux_feautrier
   real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
   real, dimension(nz) :: NHII_NHINHII,number_density,nHII,nHI,ne,ionization_factor
-  real, dimension(nz) :: e_scatter,theta,electron_pressure,hm_bf_factor
+  real, dimension(nz) :: e_scatter,theta,theta1,electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
   real, dimension(nw) :: waves_cm,waves1_cm
@@ -69,6 +69,8 @@ program flux_feautrier
      call calc_temperature(T,z)
   endif
 !
+  call pre_calc_opacity_quantities()
+!
 ! Start the time counter
 !
   call cpu_time(start)    
@@ -88,6 +90,7 @@ program flux_feautrier
       electron_pressure = get_electron_pressure(ne,T)
       e_scatter         = get_electron_thomson_scattering(number_density,nHII)
       theta             = get_theta(T1)
+      theta1            = 1./theta
       hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !
 ! Loop over wavelengths
@@ -106,7 +109,8 @@ program flux_feautrier
             source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
             stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
             call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-                 T,T1,theta,wave_angstrom,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+                 T,T1,theta,theta1,wave_angstrom,wave_cm,hm_bf_factor,stim_factor,&
+                 ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
          endif
 !
 ! Populate coefficient arrays
