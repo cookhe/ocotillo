@@ -36,6 +36,9 @@ module Common
 
 ! Pi
   real, parameter :: pi=4*atan(1.0)
+  real :: pi1=1d0/pi
+  real :: sqrt3 = sqrt(3d0)
+  real :: exp1 = exp(1d0)
 
 ! Boltzmann constant in erg/K and eV/K
   real, parameter :: k_cgs=1.380649d-16
@@ -64,5 +67,9 @@ module Common
 !
   real, parameter :: G_Newton_cgs=6.6742d-8
   real :: SolarMass=1.988409870698051e+33
+!
+  real :: hcR1 =  h_planck*c_light_cgs/RydbergEnergy
+  real :: one_third = 1d0/3
+  real :: two_thirds = 2d0/3
 !
 endmodule Common
