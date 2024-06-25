@@ -32,7 +32,9 @@ contains
 !
 ! calculate the Saha equation (relative fraction of adjacent ions)
 !
-  constants = (sqrt(2*pi*me*k_cgs*T)*h1_planck)**3
+  !constants = (sqrt(2*pi*me*k_cgs)*h1_planck)**3   * T**1.5
+  !(sqrt(2*pi*me*k_cgs)*h1_planck)**3 = 2414683039571967.0
+  constants=2414683039571967. * T**1.5
   exparg = T1 * hydrogen_ionization_eV*k1_eV
   niine_ni =  constants * exp(-exparg)
     
