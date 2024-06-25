@@ -20,10 +20,11 @@ program flux_feautrier
   real, dimension(nz) :: opacity, albedo
   real, dimension(nz) :: NHII_NHINHII,number_density,inv_number_density
   real, dimension(nz) :: nHII,nHI,ne,ionization_factor
-  real, dimension(nz) :: e_scatter,theta,theta1,electron_pressure,hm_bf_factor
+  real, dimension(nz) :: e_scatter,theta,theta1,lgtheta,lgtheta2
+  real, dimension(nz) :: electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
-  real, dimension(nw) :: waves_cm,waves1_cm
+  real, dimension(nw) :: waves_cm,waves1_cm,nu_Hz
   real, dimension(nw) :: waves_angstrom,waves1_angstrom
 !
   real :: wave_cm,wave_angstrom,wave1_cm,wave1_angstrom
@@ -61,7 +62,7 @@ program flux_feautrier
   call read_gas_state_input()
 !
   call calc_wavelength(w1,w0,waves_angstrom,&
-       waves1_angstrom,waves_cm,waves1_cm)
+       waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
   if (lread_athena) then 
      call read_from_athena(z,dz,rho3d,temp3d)
   else
@@ -92,6 +93,8 @@ program flux_feautrier
       e_scatter         = get_electron_thomson_scattering(inv_number_density,nHII)
       theta             = 5040.* T1
       theta1            = 1./theta
+      lgtheta           = log10(theta)
+      lgtheta2          = lgtheta**2
       hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !
 ! Loop over wavelengths
@@ -110,7 +113,7 @@ program flux_feautrier
             source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
             stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
             call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-                 T,T1,theta,theta1,wave_angstrom,wave_cm,hm_bf_factor,stim_factor,&
+                 T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,nu_Hz(iw),hm_bf_factor,stim_factor,&
                  ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
          endif
 !
