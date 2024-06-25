@@ -76,7 +76,7 @@ contains
       wa1 = 1./wa
       wc  = wa*1d-8 !wavelengths in cm
       wc1 = 1./wc
-      print*, 'waves_angstrom', wa
+      print*, 'waves_angstrom min/max', minval(wa),maxval(wa)
 !
     endsubroutine calc_wavelength
 !************************************************************************************
