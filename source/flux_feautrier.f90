@@ -90,7 +90,7 @@ program flux_feautrier
       call solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_density,nHI,nHII,ne,ionization_factor)
       electron_pressure = get_electron_pressure(ne,T)
       e_scatter         = get_electron_thomson_scattering(inv_number_density,nHII)
-      theta             = get_theta(T1)
+      theta             = 5040.* T1
       theta1            = 1./theta
       hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
 !

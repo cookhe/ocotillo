@@ -9,7 +9,7 @@ module ContinuousOpacity
   private
 
   public :: get_hydrogen_stimulated_emission
-  public :: get_electron_thomson_scattering,get_theta
+  public :: get_electron_thomson_scattering
   public :: get_hydrogen_ion_bound_free
   public :: calc_opacity_and_albedo
   public :: grey_parameters
@@ -39,14 +39,6 @@ contains
     e_scatter = alpha_e * nHII * inv_number_density
 
   endfunction get_electron_thomson_scattering
-!************************************************************************************
-  function get_theta(T1) result(theta)
-    real, intent(in), dimension(nz) :: T1
-    real, dimension(nz) ::  theta
-    
-    theta = 5040.* T1
-    
-  endfunction get_theta
 !************************************************************************************
   function get_hydrogen_ion_bound_free(electron_pressure,theta) result(hm_bf_factor)
 
