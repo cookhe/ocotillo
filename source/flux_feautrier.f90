@@ -96,7 +96,7 @@ program flux_feautrier
          lfirst=(ix==1).and.(iy==1).and.(iw==1) 
          wave_cm = waves_cm(iw)
          wave1_cm = waves1_cm(iw)
-         if (lfirst) print*, 'waves_cm',waves_cm
+         if (lfirst) print*, 'waves_cm min/max',minval(waves_cm),maxval(waves_cm)
          wave_angstrom = waves_angstrom(iw)
          wave1_angstrom = waves1_angstrom(iw)
 !    
