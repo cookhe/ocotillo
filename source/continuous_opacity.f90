@@ -17,10 +17,18 @@ module ContinuousOpacity
 
   real :: switch_ionfraction=1e-2
   real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
+  real, dimension(3,5) :: b_coeff
 
 contains
 !************************************************************************************
   subroutine pre_calc_opacity_quantities
+
+    b_coeff = transpose(reshape(                                   &
+         (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
+         +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
+         -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
+         (/ size(b_coeff, 2), size(b_coeff, 1) /)))
+
 
   endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
@@ -250,7 +258,6 @@ contains
 !    electron pressure.                                                                            
 !    """
     real, dimension(nz) :: ne,temp,kappa_Hm_ff,theta,factor,flam
-    real, dimension(3,5) :: b
     real, dimension(3) :: f
     real :: waves
     integer i,j
@@ -259,16 +266,10 @@ contains
 !
     ! fit coefficients
     
-    b = transpose(reshape(                                   &
-         (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
-         +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
-         -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
-         (/ size(b, 2), size(b, 1) /)))
-
     do i=1,3
       f(i)=0.
       do j=1,5
-        f(i) = f(i) + log10(waves)**(j-1) * b(i,j)
+        f(i) = f(i) + log10(waves)**(j-1) * b_coeff(i,j)
       enddo
     enddo
 
