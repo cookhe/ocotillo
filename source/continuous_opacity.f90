@@ -119,8 +119,6 @@ contains
 !
     intent(in) :: waves, temp, temp1, factor
 !
-    AHbf = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
-           
     ! sum for the first m-1 excitation states
     sm = 0.
     ktemp = k_cgs*temp
@@ -167,7 +165,7 @@ contains
     do i=1,nz
        if ((1-NHII_NHINHII(i)) .gt. switch_ionfraction) then
           ! Use Gray 2022 function that depends on hydrogen's ionization state.
-          g_ff = 1 + 0.3456 * (waves * Rangstrom)**(-1./3) * (theta1(i)*log10e*chi1 + 0.5)
+          g_ff = 1 + 0.3456 * (waves * Rangstrom)**(-one_third) * (theta1(i)*log10e*chi1 + 0.5)
           energyfactor = .5*log10e*theta1(i)*Iev1 * 10**(-theta(i)*Iev)
           kappa_H_ff = factor(i) * alpha0 * waves**3 * g_ff * energyfactor
           kappa_rad(i) = kappa_rad(i) + kappa_H_ff * mp1 ! cm^2 / g
