@@ -79,7 +79,7 @@ contains
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
 
-    call calc_kappa_H_ff(wave_angstrom, temp, theta, stim_factor * ionization_factor,&
+    call calc_kappa_H_ff(wave_angstrom, temp, theta, theta1, stim_factor * ionization_factor,&
          rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity)
 
     albedo = e_scatter / (kappa_rad*mp)
@@ -140,7 +140,7 @@ contains
     
   endfunction get_kappa_H_bf
 !************************************************************************************
-  subroutine calc_kappa_H_ff(waves, temp, theta, factor,&
+  subroutine calc_kappa_H_ff(waves, temp, theta, theta1, factor,&
     rho,rho1,NHII_NHINHII,ne,nHI,nHII,&
     kappa_rad,opacity)
 !
@@ -156,13 +156,12 @@ contains
     real :: chi1,waves,switch_ionfraction
     integer :: i
 !
-    intent(in) :: waves, temp, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII
+    intent(in) :: waves, temp, theta, theta1, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII
     intent(inout) :: kappa_rad,opacity
 !    
     switch_ionfraction=1e-2
 
     chi1 = waves/1.2398e4
-    theta1 = temp/5040
 
     do i=1,nz
        if ((1-NHII_NHINHII(i)) .gt. switch_ionfraction) then
