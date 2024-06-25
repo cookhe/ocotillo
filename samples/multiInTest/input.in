@@ -26,7 +26,7 @@
   datadir="./output_athena/distributed"
   RunName="agn_snova_3d"
   nproc=4
-  snapshot='0001'
+  snapshot='0000'
 !
 ! For post-processinf
 !
