@@ -67,7 +67,7 @@ subroutine solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_densi
   
   do i=1,nz
     if (nHI(i) /= 0) then
-      ionization_factor(i) = 1./(1. + nHII(i)/nHI(i))
+      ionization_factor(i) = nHI(i)/(nHI(i) + nHII(i))
     else ! set to zero.
       ionization_factor(i) = 0.
     endif
