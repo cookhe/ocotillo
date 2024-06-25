@@ -82,7 +82,7 @@ contains
     intent(in)   :: wave_angstrom,wave_cm,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    kappa_H_bf  = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor)
+    kappa_H_bf  = get_kappa_H_bf(wave_angstrom, wave_cm, temp, temp1, stim_factor * ionization_factor)
     kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
     kappa_Hm_ff = get_kappa_Hm_ff(ne,wave_angstrom,temp,theta,ionization_factor)
 
@@ -96,7 +96,7 @@ contains
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
-  function get_kappa_H_bf(waves, temp, temp1, factor) result(kappa_H_bf)
+  function get_kappa_H_bf(waves_ang, waves_cm, temp, temp1, factor) result(kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
 !    1 to m-1 excitation states, where m is the principal quantum
@@ -122,9 +122,9 @@ contains
 !    
     real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
     integer :: m=6, n
-    real :: chi_n,chi_m,waves, g
+    real :: chi_n,chi_m,waves_ang,waves_cm,g
 !
-    intent(in) :: waves, temp, temp1, factor
+    intent(in) :: waves_ang, waves_cm, temp, temp1, factor
 !
     ! sum for the first m-1 excitation states
     sm = 0.
@@ -133,7 +133,7 @@ contains
     
     do n=1,m
       chi_n = RydbergEnergy * (1. - 1.*n1_array(n)**2)
-      call gaunt(n, waves, g)
+      call gaunt(n, waves_cm, g)
       sm = sm + g*n1_array(n)**3 * exp(-chi_n*ktemp1)
     enddo
     
@@ -143,7 +143,7 @@ contains
     ! Unsold approximation integral
     C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
 
-    kappa_H_bf = AHbf * factor * waves**3 * (C + sm)
+    kappa_H_bf = AHbf * factor * waves_ang**3 * (C + sm)
     
   endfunction get_kappa_H_bf
 !************************************************************************************
@@ -277,7 +277,7 @@ contains
 
   endfunction get_kappa_Hm_ff
 !************************************************************************************
-  subroutine gaunt(n, waves, gaunt_factor)
+  subroutine gaunt(n, wave_cm, gaunt_factor)
 !
 !    """
 !    Calculate Gaunt Factor
@@ -288,29 +288,23 @@ contains
 !    """
 !    
     integer :: n
-    real :: waves, waves_cm
-    real :: R,c,h,lam_n,eps_n,gaunt_factor
+    real :: wave_cm
+    real :: lam_n,eps2_n,gaunt_factor
 !
-    intent(in) :: n,waves
+    intent(in) :: n,wave_cm
     intent(out) :: gaunt_factor
 !
-    R = RydbergEnergy
-    c = c_light_cgs
-    h = h_planck
-    
-    ! convert Angstroms to centimeters
-    waves_cm = waves*1e-8
-    
     ! reference wavelength lambda_n
-    lam_n = n**2 * h*c/R
+    lam_n = n**2 * hcR1
     
     ! gaunt will be non-zero only where wavelengths are shorter than
     !   lam_n (i.e. the ionizing wavelength)
-    if (waves_cm .le. lam_n) then
-       eps_n = (waves_cm/lam_n) - 1
+    if (wave_cm .le. lam_n) then
+       eps2_n = ((wave_cm/lam_n) - 1)**2
 
        ! Gaunt factor. Below experession is for lamda <= lambda_n; zero otherwise
-       gaunt_factor = 1 - (121./700.) * (1-eps_n**2) / (n*(1+eps_n**2))**(2./3)       
+       !121./700=0.17285714285714285
+       gaunt_factor = 1 - 0.17285714285714285 * (1-eps2_n) / (n*(1+eps2_n))**(two_thirds)
     else
        gaunt_factor=0.0
     endif
