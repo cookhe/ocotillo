@@ -304,7 +304,7 @@ contains
 
        ! Gaunt factor. Below experession is for lamda <= lambda_n; zero otherwise
        !121./700=0.17285714285714285
-       gaunt_factor = 1 - 0.17285714285714285 * (1-eps2_n) / (n*(1+eps2_n))**(two_thirds)
+       gaunt_factor = 1 - 0.17285714285714285 * (1-eps2_n) * (n*(1+eps2_n))**(-two_thirds)
     else
        gaunt_factor=0.0
     endif
