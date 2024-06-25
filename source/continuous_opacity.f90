@@ -17,6 +17,7 @@ module ContinuousOpacity
 
   real :: switch_ionfraction=1e-2
   real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
+  real, dimension(7) :: a_coeff
   real, dimension(3,5) :: b_coeff
   real :: AHbf = 1.0449e-26
   real, dimension(6) :: n1_array
@@ -28,6 +29,14 @@ contains
   subroutine pre_calc_opacity_quantities
 
     integer :: n
+
+    a_coeff = (/+1.99654,&
+         -1.18267e-6,&
+         +2.62423e-7,&
+         -4.40524e-11,&
+         +3.23992e-15,&
+         -1.39568e-19,&
+         +2.78701e-24/)
 
     b_coeff = transpose(reshape(                                   &
          (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
@@ -225,24 +234,16 @@ contains
 !    
 !    """
     real, dimension(nz) :: factor,kappa_Hm_bf
-    real, dimension(7) :: a
     real :: s,waves
     integer :: i
 
     ! fit coefficients
     if (waves .lt. 16000) then
-       a = (/+1.99654,&
-       -1.18267e-6,&
-       +2.62423e-7,&
-       -4.40524e-11,&
-       +3.23992e-15,&
-       -1.39568e-19,&
-       +2.78701e-24/)
     
     ! loop through each wavelength and perform the summation
        s=0
        do i=1,7
-          s = s + a(i)*waves**(i-1)
+          s = s + a_coeff(i)*waves**(i-1)
        enddo
 
        kappa_Hm_bf = factor*1e-17 * s
