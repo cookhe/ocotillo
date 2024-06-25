@@ -19,10 +19,13 @@ module ContinuousOpacity
   real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
   real, dimension(3,5) :: b_coeff
   real :: AHbf = 1.0449e-26
+  real, dimension(6) :: n1_array
 
 contains
 !************************************************************************************
   subroutine pre_calc_opacity_quantities
+
+    integer :: n
 
     b_coeff = transpose(reshape(                                   &
          (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
@@ -30,6 +33,10 @@ contains
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
          (/ size(b_coeff, 2), size(b_coeff, 1) /)))
 
+    do n=1,6
+       n1_array(n)=1./n
+    enddo
+!
   endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
   function get_electron_thomson_scattering(inv_number_density, nHII) result(e_scatter)
@@ -115,7 +122,7 @@ contains
 !    
     real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
     integer :: m=6, n
-    real :: chi_n,chi_m,waves, g, n1
+    real :: chi_n,chi_m,waves, g
 !
     intent(in) :: waves, temp, temp1, factor
 !
@@ -125,10 +132,9 @@ contains
     ktemp1 = k1_cgs*temp1
     
     do n=1,m
-      n1=1./n
-      chi_n = RydbergEnergy * (1. - 1.*n1**2)
+      chi_n = RydbergEnergy * (1. - 1.*n1_array(n)**2)
       call gaunt(n, waves, g)
-      sm = sm + g*n1**3 * exp(-chi_n*ktemp1)
+      sm = sm + g*n1_array(n)**3 * exp(-chi_n*ktemp1)
     enddo
     
     ! excitation energy of state level m
