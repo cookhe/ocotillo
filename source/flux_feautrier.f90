@@ -144,7 +144,7 @@ program flux_feautrier
 ! Write output
 !
   call output_grid(z)
-  call output_ascii(U(:,ny,nx,:),V,Ip,Im)
+  call output_ascii(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:))
   call output_binary(U,absorp_coeff,z)
 ! 
 endprogram flux_feautrier

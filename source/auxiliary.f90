@@ -153,16 +153,16 @@ contains
     
   endsubroutine fill_boundary_coeffs
 !************************************************************************************
-  subroutine output_ascii(U,V,Ip,Im)
+  subroutine output_ascii(U,absorp_coeff)
 
     real, dimension(mz,nw) :: U
-    real, dimension(nz,nw) :: V,Ip,Im
+    real, dimension(nz,nw) :: absorp_coeff
     integer :: i,iw
 !
     open(10,file="output/diagnostics.dat",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
-        write(unit=10,FMT="(2I6,e20.10,e15.6,2e20.10)") i,iw,U(n1+i-1,iw),V(i,iw),Ip(i,iw),Im(i,iw)
+         write(unit=10,FMT="(2I6,2e20.10)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
       enddo
     enddo
     close(10)
