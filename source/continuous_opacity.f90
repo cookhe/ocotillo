@@ -18,6 +18,7 @@ module ContinuousOpacity
   real :: switch_ionfraction=1e-2
   real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
   real, dimension(3,5) :: b_coeff
+  real :: AHbf = 1.0449e-26
 
 contains
 !************************************************************************************
@@ -114,11 +115,11 @@ contains
 !    
     real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
     integer :: m=6, n
-    real :: A,chi_n,chi_m,waves, g, n1
+    real :: chi_n,chi_m,waves, g, n1
 !
     intent(in) :: waves, temp, temp1, factor
 !
-    A = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
+    AHbf = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
            
     ! sum for the first m-1 excitation states
     sm = 0.
@@ -138,7 +139,7 @@ contains
     ! Unsold approximation integral
     C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
 
-    kappa_H_bf = A * factor * waves**3 * (C + sm)
+    kappa_H_bf = AHbf * factor * waves**3 * (C + sm)
     
   endfunction get_kappa_H_bf
 !************************************************************************************
