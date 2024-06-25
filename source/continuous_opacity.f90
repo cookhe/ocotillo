@@ -18,16 +18,24 @@ module ContinuousOpacity
   real :: switch_ionfraction=1e-2
   real :: ln_const = 19.72694361375364 !log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb) 
   real, dimension(3,5) :: b_coeff
+  real :: AHbf = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
+  real, dimension(6) :: n1_array
 
 contains
 !************************************************************************************
   subroutine pre_calc_opacity_quantities
+
+    integer :: n
 
     b_coeff = transpose(reshape(                                   &
          (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
          +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
          (/ size(b_coeff, 2), size(b_coeff, 1) /)))
+
+    do n=1,6
+      n1_array(n)=1./n**2
+    enddo
 
   endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
@@ -84,7 +92,7 @@ contains
     call calc_kappa_H_ff(wave_angstrom, temp, theta, theta1, stim_factor * ionization_factor,&
          rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity)
 
-    albedo = e_scatter / (kappa_rad*mp)
+    albedo = e_scatter*mp1 / kappa_rad
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
@@ -113,23 +121,20 @@ contains
 !    """
 !    
     real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
-    integer :: m=6, n
-    real :: A,chi_n,chi_m,waves, g, n1
+    integer :: m=6,n
+    real :: chi_n,chi_m,waves, g
 !
     intent(in) :: waves, temp, temp1, factor
 !
-    A = 1.0449e-26    ! cm^2 A^-3 - fundamental constants
-           
     ! sum for the first m-1 excitation states
     sm = 0.
     ktemp = k_cgs*temp
     ktemp1 = k1_cgs*temp1
     
     do n=1,m
-      n1=1./n
-      chi_n = RydbergEnergy * (1. - 1.*n1**2)
+      chi_n = RydbergEnergy * (1. - 1.*n1_array(n)**2)
       call gaunt(n, waves, g)
-      sm = sm + g*n1**3 * exp(-chi_n*ktemp1)
+      sm = sm + g*n1_array(n)**3 * exp(-chi_n*ktemp1)
     enddo
     
     ! excitation energy of state level m
@@ -138,7 +143,7 @@ contains
     ! Unsold approximation integral
     C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
 
-    kappa_H_bf = A * factor * waves**3 * (C + sm)
+    kappa_H_bf = AHbf * factor * waves**3 * (C + sm)
     
   endfunction get_kappa_H_bf
 !************************************************************************************
