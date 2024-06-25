@@ -193,8 +193,7 @@ contains
     intent(in) :: frequency, temperature, nelectrons, nprotons, zprotons
     intent(out) :: kappaRho
     
-    !gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency*1e-9 * (temperature*1e-4)**(-1.5))) + exp1)
-    gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency/1e9 * (temperature*1e-4)**(-1.5))) + exp1)
+    gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency*1e-9 * (temperature*1e-4)**(-1.5))) + exp1)
 
     ln_physQuant = log(nelectrons*nprotons) + &
          2*log(zprotons) - &
