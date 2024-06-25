@@ -69,9 +69,11 @@ contains
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-       temp,temp1,theta,theta1,wave_angstrom,wave_cm,hm_bf_factor,stim_factor,ionization_factor,opacity,albedo)
+       temp,temp1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,hm_bf_factor,&
+       stim_factor,ionization_factor,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, ne, NHII_NHINHII,nHI,nHII
+    real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, lgtheta, lgtheta2
+    real, dimension(nz) :: ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     real :: wave_angstrom, wave_cm
@@ -84,7 +86,7 @@ contains
 
     kappa_H_bf  = get_kappa_H_bf(wave_angstrom, wave_cm, temp, temp1, stim_factor * ionization_factor)
     kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
-    kappa_Hm_ff = get_kappa_Hm_ff(ne,wave_angstrom,temp,theta,ionization_factor)
+    kappa_Hm_ff = get_kappa_Hm_ff(ne,wave_angstrom,temp,lgtheta,lgtheta2,ionization_factor)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
@@ -148,8 +150,7 @@ contains
   endfunction get_kappa_H_bf
 !************************************************************************************
   subroutine calc_kappa_H_ff(waves, temp, temp1, theta, theta1, factor,&
-    rho,rho1,NHII_NHINHII,ne,nHI,nHII,&
-    kappa_rad,opacity)
+       rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity)
 !
 !    """Hydrogen free-free absorption coefficient.
 !    
@@ -250,17 +251,17 @@ contains
 !
   endfunction  get_kappa_Hm_bf
 !************************************************************************************
-  function get_kappa_Hm_ff(ne, waves, temp, theta, factor) result(kappa_Hm_ff)
+  function get_kappa_Hm_ff(ne, waves, temp, lgtheta, lgtheta2, factor) result(kappa_Hm_ff)
 !
 !    """H- ion free-free interaction cross section per HI per unit                                 
 !    electron pressure.                                                                            
 !    """
-    real, dimension(nz) :: ne,temp,kappa_Hm_ff,theta,factor,flam
+    real, dimension(nz) :: ne,temp,kappa_Hm_ff,lgtheta, lgtheta2, factor,flam
     real, dimension(3) :: f
     real :: waves
     integer i,j
 !    
-    intent(in) :: ne,waves,temp, theta
+    intent(in) :: ne,waves,temp, lgtheta, lgtheta2
 !
     ! fit coefficients
     
@@ -271,7 +272,7 @@ contains
       enddo
     enddo
 
-    flam = f(1) + f(2)*log10(theta) + f(3)*log10(theta)**2 - 26
+    flam = f(1) + f(2)*lgtheta + f(3)*lgtheta2 - 26
 
     kappa_Hm_ff = factor * ne * k_cgs * temp * 10**(flam)
 
