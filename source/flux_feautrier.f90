@@ -150,7 +150,8 @@ program flux_feautrier
 ! Write output
 !
   if ((iprocx==0) .and. (iprocy==0)) then
-     call output_grid(z)
+    call output_grid(z)
+    !Output for diagnostic purposes 
     call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
   endif
   call output_binary(U,absorp_coeff,iprocx,iprocy)
