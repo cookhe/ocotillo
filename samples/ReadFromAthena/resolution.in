@@ -1,3 +1,6 @@
 !  -*-f90-*-  (for Emacs)    vim:set filetype=fortran:  (for vim)
 integer, parameter :: nw=5               ! Number of wavelengths
-integer, parameter :: nz=33,nyloc=32,nxloc=31  ! Number of grid points in computational domain
+integer, parameter :: nz=33,ny=32,nx=31  ! Number of grid points in computational domain
+integer, parameter :: nprocx=1,nprocy=1,nprocz=1
+!
+integer, parameter :: nyloc=ny/nprocy,nxloc=nx/nprocx  ! Number of grid points in computational domain    
