@@ -26,4 +26,9 @@
   aspect_ratio = 0.005
   mean_molecular_weight  = 1.0079764
   rho0=1e-9
+!
+  nprocx=1
+  nprocy=1
+  nprocz=1
+  
 /
