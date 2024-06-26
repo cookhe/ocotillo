@@ -6,7 +6,8 @@ program flux_feautrier
   use GasState
   use ContinuousOpacity
   use ReadAthena
-
+  use FileIO
+  
   implicit none
 
   real, dimension(mz,nyloc,nxloc,nw) :: U
@@ -33,12 +34,16 @@ program flux_feautrier
   real :: w0=3000,w1=5000
   real :: sigma_grey
 !
-  integer :: iw,ix,iy
+  integer :: iw,ix,iy,iprocx,iprocy
   integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
 !
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
+!
+! Start the time counter
+!
+  call cpu_time(start)    
 !
 !  Read the input namelist with the user-defined parameters.
 !
@@ -63,21 +68,23 @@ program flux_feautrier
 !
   call calc_wavelength(w1,w0,waves_angstrom,&
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
-
+!
+  call pre_calc_opacity_quantities()
+! 
+  if (lread_athena) call read_athena_input()
+  
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! loop through processors  
+  do iprocx=0,nprocx-1; do iprocy=0,nprocy-1
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   if (lread_athena) then
-     call read_athena_input()
-     call read_from_athena(z,dz,rho3d,temp3d)
+     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy)
   else
      call calc_grid(z1,z0,z,dz)
      call calc_density(rho,z)
      call calc_temperature(T,z)
   endif
 !
-  call pre_calc_opacity_quantities()
-!
-! Start the time counter
-!
-  call cpu_time(start)    
 !***********************************************************************
 !xy-dependent starts here
 !***********************************************************************
@@ -136,6 +143,20 @@ program flux_feautrier
     enddo yloop
   enddo xloop
 !
+! Calculate post-processing on one column for diagnostic: flux and intensities.
+!
+  !call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
+!
+! Write output
+!
+!  if ((iprocx==nprocx-1) .and. (iprocy==nprocy-1)) then
+  if ((iprocx==0) .and. (iprocy==0)) then
+     call output_grid(z)
+    call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
+  endif
+  call output_binary(U,absorp_coeff,iprocx,iprocy)
+  enddo;enddo
+! 
 ! Finish the time counter and print the wall time
 !
   call cpu_time(finish)
@@ -143,15 +164,5 @@ program flux_feautrier
   print*,"Execution time =",(finish-start)/(nz*nyloc*nxloc*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
 !
-! Calculate post-processing on one column for diagnostic: flux and intensities.
-!
-  !call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
-!
-! Write output
-!
-  call output_grid(z)
-  call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
-  call output_binary(U,absorp_coeff,z)
-! 
 endprogram flux_feautrier
 !***********************************************************************
