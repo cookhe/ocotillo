@@ -8,7 +8,6 @@ module Auxiliary
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries
   public :: fill_center_coeffs,fill_boundary_coeffs
-  public :: output_ascii,output_grid,output_binary
   public :: get_source_function
 
 contains
@@ -152,55 +151,6 @@ contains
     if (lfirst) print*, ' Filled boundary coeffs'
     
   endsubroutine fill_boundary_coeffs
-!************************************************************************************
-  subroutine output_ascii(U,absorp_coeff)
-
-    real, dimension(mz,nw) :: U
-    real, dimension(nz,nw) :: absorp_coeff
-    integer :: i,iw
-!
-    open(10,file="output/diagnostics.dat",status="replace",action='write')
-    do i=1,nz
-      do iw=1,nw
-         write(unit=10,FMT="(2I6,2e20.10)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
-      enddo
-    enddo
-    close(10)
-
-  endsubroutine output_ascii
-!************************************************************************************
-  subroutine output_grid(z)
-
-    real, dimension(mz) :: z
-    integer :: i
-!
-    open(15,file="output/zgrid.dat",status="replace",action='write')
-    do i=1,nz
-      write(unit=15,FMT=*) i,z(n1+i-1)
-    enddo
-    close(15)
-
-  endsubroutine output_grid
-!************************************************************************************  
-  subroutine output_binary(U,absorp_coeff,z)
-
-    real, dimension(mz,nyloc,nxloc,nw) :: U
-    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
-    real, dimension(mz) :: z
-
-    open(35, file='output/mean_intensity.fvar', form='unformatted',status='replace',action='write')
-    write(35) U
-    close(35)
-
-    open(45, file='output/absorption_coefficients.fvar', form='unformatted',status='replace',action='write')
-    write(45) absorp_coeff
-    close(45)
-
-    open(55, file='output/zgrid.fvar', form='unformatted',status='replace',action='write')
-    write(55) z
-    close(55)
-
-  endsubroutine output_binary
 !************************************************************************************
   function get_source_function(wave1_cm,T1,log_overflow_limit) result(source_function)
 
