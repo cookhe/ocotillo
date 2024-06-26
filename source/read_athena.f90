@@ -2,7 +2,7 @@ module ReadAthena
 
   use Common
   use Disk
-  use fileIO
+  use FileIO
   use, intrinsic :: iso_c_binding, only: c_float, c_double, c_int  
   implicit none
 
@@ -17,13 +17,10 @@ module ReadAthena
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
 
-  integer :: nprocz=2,nprocy=1,nprocx=2
   integer :: nzloc
-  integer :: iprocx=0,iprocy=0
   
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-       aspect_ratio,mean_molecular_weight,rho0,datadir,snapshot,&
-       nprocz,nprocy,nprocx,iprocx,iprocy
+       aspect_ratio,mean_molecular_weight,rho0,datadir,snapshot
 
   
 contains
@@ -38,7 +35,7 @@ contains
 !
    endsubroutine read_athena_input
 !************************************************************************************
-  subroutine read_from_athena(z,dz,rho,temp)
+  subroutine read_from_athena(z,dz,rho,temp,iprocx,iprocy)
 !
       integer(c_int) :: nxloc_,nyloc_,nzloc_
       real(c_double) :: gamma1
@@ -62,6 +59,7 @@ contains
       real, dimension(nz) :: zn      
       real, intent(out) :: dz
       integer :: iproc,iprocz
+      integer, intent(in) :: iprocx,iprocy
       character(len=90)   :: head,tail,filename,sproc,base
 !
       real :: z0
@@ -232,14 +230,5 @@ contains
            minval(temp),maxval(temp),sum(temp)/(nxloc*nyloc*nz)
 !
     endsubroutine postprocess_athena_values
-!************************************************************************************
-    character (len=21) function itoa(n)
-! plucked from pencil
-      integer, intent(in) :: n
-!
-      write (itoa, '(I21)') n   ! (64 bit integer plus sign)
-      itoa = adjustl(itoa)
-!
-    endfunction itoa
 !************************************************************************************
   endmodule ReadAthena
