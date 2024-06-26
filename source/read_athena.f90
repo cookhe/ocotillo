@@ -17,27 +17,22 @@ module ReadAthena
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
 
-  integer :: nzloc
-  
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
        aspect_ratio,mean_molecular_weight,rho0,datadir,snapshot
-
   
 contains
 !************************************************************************************
-   subroutine read_athena_input()
+  subroutine read_athena_input()
 !
       open(40,file='./input.in')
       read(40,nml=athena_input)
       close(40)
 !
-      nzloc = nz/nprocz
-!
-   endsubroutine read_athena_input
+  endsubroutine read_athena_input
 !************************************************************************************
   subroutine read_from_athena(z,dz,rho,temp,iprocx,iprocy)
 !
-      integer(c_int) :: nxloc_,nyloc_,nzloc_
+      integer(c_int) :: nxloc_,nyloc_,nzloc
       real(c_double) :: gamma1
 
       integer(c_int) :: dummy1_int ! coordsys
@@ -47,11 +42,11 @@ contains
 !      
       real(c_double), dimension(nxloc) :: xloc
       real(c_double), dimension(nyloc) :: yloc
-      real(c_double), dimension(nzloc) :: zloc
-      real(c_double), dimension(nzloc,nyloc,nxloc) :: tmp_loc
+      real(c_double), allocatable :: zloc(:)
+      !real(c_double), dimension(nzloc,nyloc,nxloc) :: tmp_loc
 
 !      real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
-!      real(c_double), allocatable :: tmp_loc(:,:,:)
+      real(c_double), allocatable :: tmp_loc(:,:,:)
 !
       real, dimension(nz,nyloc,nxloc), intent(out) :: rho,temp
 !
@@ -79,9 +74,9 @@ contains
         sproc=itoa(iproc)
         head=trim(base)//trim(sproc)//"/"//trim(RunName)
         if (iproc==0) then 
-          filename= trim(head)//trim(tail)
+           filename= trim(head)//trim(tail)
         else
-          filename= trim(head)//"-id"//trim(sproc)//trim(tail)
+           filename= trim(head)//"-id"//trim(sproc)//trim(tail)
         endif
         if (file_exists(trim(filename)) .eqv. .false.) then
           print*,"iproc=",iproc
@@ -89,8 +84,8 @@ contains
           stop
         endif
 
-        print*,"Reading ",trim(FileName)
-        open(99, file = trim(FileName), form = 'unformatted', ACCESS='stream')
+        print*,"Reading ",trim(filename)
+        open(99, file = trim(filename), form = 'unformatted', ACCESS='stream')
 
         read(99) dummy1_int !coordsys
 !
@@ -110,13 +105,7 @@ contains
           print*,"The Athena y dimensionality does not match the chosen for the RT post-processing. Fix."
           stop
         endif
-        read(99) nzloc_
-        if (nzloc_ /= nzloc) then
-          print*,"Resolution in z read from Athena = ",nzloc_
-          print*,"RT z-dimensionality nz/nprocz = ",nzloc
-          print*,"The Athena z dimensionality does not match the chosen for the RT post-processing. Fix."
-          stop
-        endif
+        read(99) nzloc
 !       
         read(99) dummy2_int,dummy3_int,dummy4_int,dummy5_int !nvar,nscalars,selfgrav_boolean, particles_boolean
         read(99) gamma1
@@ -124,6 +113,7 @@ contains
 !        
         read(99) xloc
         read(99) yloc
+        allocate(zloc(nzloc))
         read(99) zloc
 !
         if (iprocz==0) then
@@ -136,7 +126,7 @@ contains
 !
         zn(iz0:iz1) = zloc
 !
-        !allocate(tmp_loc(nzloc,nyloc_,nxloc_))
+        allocate(tmp_loc(nzloc,nyloc,nxloc))
 !
         !rho1=1./rho(:,iy,ix)
         !ekin = 0.5*rho1*ru2(:,iy,ix)
@@ -163,7 +153,7 @@ contains
         read(99) tmp_loc !eng
         temp(iz0:iz1,:,:) = (tmp_loc-temp(iz0:iz1,:,:))/rho(iz0:iz1,:,:)
         
-        !deallocate(tmp_loc,xloc,yloc,zloc)
+        deallocate(tmp_loc,zloc)
         
         close(99)        
       enddo
