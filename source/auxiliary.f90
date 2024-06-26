@@ -184,8 +184,8 @@ contains
 !************************************************************************************  
   subroutine output_binary(U,absorp_coeff,z)
 
-    real, dimension(mz,ny,nx,nw) :: U
-    real, dimension(nz,ny,nx,nw) :: absorp_coeff
+    real, dimension(mz,nyloc,nxloc,nw) :: U
+    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
     real, dimension(mz) :: z
 
     open(35, file='output/mean_intensity.fvar', form='unformatted',status='replace',action='write')
