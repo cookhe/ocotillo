@@ -8,7 +8,7 @@ module ReadAthena
 
   private
 
-  public :: read_from_athena
+  public :: read_from_athena,read_athena_input
 
   character(len=90)   :: RunName
   character(len=90)   :: datadir="./output_athena/distributed"
@@ -18,6 +18,7 @@ module ReadAthena
   real :: aspect_ratio,mean_molecular_weight,rho0
 
   integer :: nprocz=2,nprocy=1,nprocx=2
+  integer :: nzloc
   integer :: iprocx=0,iprocy=0
   
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
@@ -27,17 +28,33 @@ module ReadAthena
   
 contains
 !************************************************************************************
-    subroutine read_from_athena(z,dz,rho,temp)
+   subroutine read_athena_input()
 !
-      integer(c_int) :: coordsys
-      integer(c_int) :: nxloc_,nyloc_,nzloc
-      integer(c_int) :: nvar,nscalars
-      integer(c_int) :: selfgrav_boolean, particles_boolean
-      real(c_double) :: gamma1,cs
-      real(c_double) :: t,dt
+      open(40,file='./input.in')
+      read(40,nml=athena_input)
+      close(40)
+!
+      nzloc = nz/nprocz
+!
+   endsubroutine read_athena_input
+!************************************************************************************
+  subroutine read_from_athena(z,dz,rho,temp)
+!
+      integer(c_int) :: nxloc_,nyloc_,nzloc_
+      real(c_double) :: gamma1
+
+      integer(c_int) :: dummy1_int ! coordsys
+      integer(c_int) :: dummy2_int, dummy3_int !nvar,nscalars
+      integer(c_int) :: dummy4_int, dummy5_int !selfgrav_boolean, particles_boolean
+      real(c_double) :: dummy1_real,dummy2_real,dummy3_real !cs,t,dt
 !      
-      real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
-      real(c_double), allocatable :: tmp_loc(:,:,:)
+      real(c_double), dimension(nxloc) :: xloc
+      real(c_double), dimension(nyloc) :: yloc
+      real(c_double), dimension(nzloc) :: zloc
+      real(c_double), dimension(nzloc,nyloc,nxloc) :: tmp_loc
+
+!      real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
+!      real(c_double), allocatable :: tmp_loc(:,:,:)
 !
       real, dimension(nz,nyloc,nxloc), intent(out) :: rho,temp
 !
@@ -54,10 +71,6 @@ contains
   !order: 
   !coordsys,nx,ny,nz,nvar,nscalars,selfgrav_boolean, particles_boolean,gamma1,cs,t,dt,x,y,z,rho,rux,ruy,ruz,eng
   !
-      open(40,file='./input.in')
-      read(40,nml=athena_input)
-      close(40)
-
       base=trim(datadir)//"/id"
       tail="."//trim(snapshot)//".bin"
 
@@ -81,50 +94,51 @@ contains
         print*,"Reading ",trim(FileName)
         open(99, file = trim(FileName), form = 'unformatted', ACCESS='stream')
 
-        read(99) coordsys
-        read(99) nxloc_,nyloc_,nzloc,nvar,nscalars
-        read(99) selfgrav_boolean, particles_boolean
-        read(99) gamma1,cs
-        read(99) t,dt
-
-        allocate(xloc(nxloc_)); read(99) xloc
-        allocate(yloc(nyloc_)); read(99) yloc
-        allocate(zloc(nzloc)); read(99) zloc
-!
-        if (iprocz==0) then
-            z0=zloc(1)
-            dz=zloc(2)-zloc(1)
-         endif
-
-        iz0 = nint((zloc(1)-z0)/dz) + 1
-        iz1 = iz0 + nzloc - 1
-!
-        zn(iz0:iz1) = zloc
+        read(99) dummy1_int !coordsys
 !
 ! Sanity check
 !
+        read(99) nxloc_
         if (nxloc_ /= nxloc) then
           print*,"Resolution in x from Athena = ",nxloc_
           print*,"RT x-dimensionality from resolution.in = ",nxloc
           print*,"The Athena x dimensionality does not match the chosen for the RT post-processing. Fix."
           stop
         endif
+        read(99) nyloc_
         if (nyloc_ /= nyloc) then
           print*,"Resolution in y from Athena = ",nyloc_
           print*,"RT y-dimensionality from resolution.in = ",nyloc
           print*,"The Athena y dimensionality does not match the chosen for the RT post-processing. Fix."
           stop
         endif
-        if (iprocz==nprocz-1) then
-          if (iz1 /= nz) then
-            print*,"Resolution in z from Athena = ",iz1
-            print*,"RT z-dimensionality from resolution.in = ",nz
-            print*,"The Athena z dimensionality does not match the chosen for the RT post-processing. Fix."
-            stop
-          endif
+        read(99) nzloc_
+        if (nzloc_ /= nzloc) then
+          print*,"Resolution in z read from Athena = ",nzloc_
+          print*,"RT z-dimensionality nz/nprocz = ",nzloc
+          print*,"The Athena z dimensionality does not match the chosen for the RT post-processing. Fix."
+          stop
         endif
+!       
+        read(99) dummy2_int,dummy3_int,dummy4_int,dummy5_int !nvar,nscalars,selfgrav_boolean, particles_boolean
+        read(99) gamma1
+        read(99) dummy1_real,dummy2_real,dummy3_real !cs,t,dt
+!        
+        read(99) xloc
+        read(99) yloc
+        read(99) zloc
 !
-        allocate(tmp_loc(nzloc,nyloc_,nxloc_))
+        if (iprocz==0) then
+          z0=zloc(1)
+          dz=zloc(2)-zloc(1)
+        endif
+
+        iz0 = nint((zloc(1)-z0)/dz) + 1
+        iz1 = iz0 + nzloc - 1
+!
+        zn(iz0:iz1) = zloc
+!
+        !allocate(tmp_loc(nzloc,nyloc_,nxloc_))
 !
         !rho1=1./rho(:,iy,ix)
         !ekin = 0.5*rho1*ru2(:,iy,ix)
@@ -151,7 +165,7 @@ contains
         read(99) tmp_loc !eng
         temp(iz0:iz1,:,:) = (tmp_loc-temp(iz0:iz1,:,:))/rho(iz0:iz1,:,:)
         
-        deallocate(tmp_loc,xloc,yloc,zloc)
+        !deallocate(tmp_loc,xloc,yloc,zloc)
         
         close(99)        
       enddo

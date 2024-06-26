@@ -65,6 +65,7 @@ program flux_feautrier
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
 
   if (lread_athena) then
+     call read_athena_input()
      call read_from_athena(z,dz,rho3d,temp3d)
   else
      call calc_grid(z1,z0,z,dz)
