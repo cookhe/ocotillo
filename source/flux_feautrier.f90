@@ -9,10 +9,10 @@ program flux_feautrier
 
   implicit none
 
-  real, dimension(mz,ny,nx,nw) :: U
-  real, dimension(nz,ny,nx,nw) :: absorp_coeff
-  real, dimension(nz,ny,nx) :: rho3d,temp3d
-  real, dimension(nz,nw) :: V,Ip,Im
+  real, dimension(mz,nyloc,nxloc,nw) :: U
+  real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
+  real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
+  !real, dimension(nz,nw) :: V,Ip,Im
 !
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
@@ -63,7 +63,8 @@ program flux_feautrier
 !
   call calc_wavelength(w1,w0,waves_angstrom,&
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
-  if (lread_athena) then 
+
+  if (lread_athena) then
      call read_from_athena(z,dz,rho3d,temp3d)
   else
      call calc_grid(z1,z0,z,dz)
@@ -79,8 +80,8 @@ program flux_feautrier
 !***********************************************************************
 !xy-dependent starts here
 !***********************************************************************
-  xloop: do ix=1,nx
-    yloop: do iy=1,ny
+  xloop: do ix=1,nxloc
+    yloop: do iy=1,nyloc
       if (lread_athena) then
         rho = rho3d(1:nz,iy,ix)
         T   = temp3d(1:nz,iy,ix)
@@ -138,17 +139,17 @@ program flux_feautrier
 !
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."
-  print*,"Execution time =",(finish-start)/(nz*ny*nx*nw)*1e6,&
+  print*,"Execution time =",(finish-start)/(nz*nyloc*nxloc*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
 !
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
-  call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
+  !call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
 !
 ! Write output
 !
   call output_grid(z)
-  call output_ascii(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:))
+  call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
   call output_binary(U,absorp_coeff,z)
 ! 
 endprogram flux_feautrier
