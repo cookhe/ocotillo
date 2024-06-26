@@ -41,7 +41,7 @@ contains
     open(10,file="output/diagnostics.dat",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
-         write(unit=10,FMT="(2I6,2e20.10)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
+         write(unit=10,FMT="(2I6,2e15.5)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
       enddo
     enddo
     close(10)
