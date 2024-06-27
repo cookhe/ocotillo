@@ -23,12 +23,14 @@ module ContinuousOpacity
   real, dimension(6) :: n1_array
   real :: Rangstrom=1.0968e-3 ! Rcm = 2 * pi**2 * me * e**4 / (h**3 * c) 
   real :: alpha0=1.0443e-26     ! absorption per electron
-
+  real, dimension(nw,3) :: f
+  
 contains
 !************************************************************************************
-  subroutine pre_calc_opacity_quantities
+  subroutine pre_calc_opacity_quantities(waves)
 
-    integer :: n
+    real, dimension(nw) :: waves,lgwave
+    integer :: n,iw,i,j
 
     a_coeff = (/+1.99654,&
          -1.18267e-6,&
@@ -46,6 +48,16 @@ contains
 
     do n=1,6
        n1_array(n)=1./n
+    enddo
+!
+    lgwave=log10(waves)
+    do iw=1,nw
+      do i=1,3
+        f(iw,i)=0.
+        do j=1,5
+          f(iw,i) = f(iw,i) + lgwave(iw)**(j-1) * b_coeff(i,j)
+        enddo
+      enddo
     enddo
 !
   endsubroutine pre_calc_opacity_quantities
@@ -81,13 +93,14 @@ contains
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
        temp,temp1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,nu_Hz,hm_bf_factor,&
-       stim_factor,ionization_factor,opacity,albedo)
+       stim_factor,ionization_factor,opacity,albedo,iw)
 
     real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, lgtheta, lgtheta2
     real, dimension(nz) :: ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     real :: wave_angstrom, wave_cm, nu_Hz
+    integer :: iw
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
     
@@ -97,7 +110,7 @@ contains
 
     kappa_H_bf  = get_kappa_H_bf(wave_angstrom, wave_cm, temp, temp1, stim_factor * ionization_factor)
     kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
-    kappa_Hm_ff = get_kappa_Hm_ff(ne,wave_angstrom,temp,lgtheta,lgtheta2,ionization_factor)
+    kappa_Hm_ff = get_kappa_Hm_ff(ne,temp,lgtheta,lgtheta2,ionization_factor,iw)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
@@ -253,28 +266,19 @@ contains
 !
   endfunction  get_kappa_Hm_bf
 !************************************************************************************
-  function get_kappa_Hm_ff(ne, waves, temp, lgtheta, lgtheta2, factor) result(kappa_Hm_ff)
+  function get_kappa_Hm_ff(ne, temp, lgtheta, lgtheta2, factor,iw) result(kappa_Hm_ff)
 !
 !    """H- ion free-free interaction cross section per HI per unit                                 
 !    electron pressure.                                                                            
 !    """
     real, dimension(nz) :: ne,temp,kappa_Hm_ff,lgtheta, lgtheta2, factor,flam
-    real, dimension(3) :: f
-    real :: waves
-    integer i,j
+    integer :: iw
 !    
-    intent(in) :: ne,waves,temp, lgtheta, lgtheta2
+    intent(in) :: ne,temp, lgtheta, lgtheta2, iw
 !
     ! fit coefficients
     
-    do i=1,3
-      f(i)=0.
-      do j=1,5
-        f(i) = f(i) + log10(waves)**(j-1) * b_coeff(i,j)
-      enddo
-    enddo
-
-    flam = f(1) + f(2)*lgtheta + f(3)*lgtheta2 - 26
+    flam = f(iw,1) + f(iw,2)*lgtheta + f(iw,3)*lgtheta2 - 26
 
     kappa_Hm_ff = factor * ne * k_cgs * temp * 10**(flam)
 

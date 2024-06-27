@@ -74,7 +74,7 @@ program flux_feautrier
   call calc_wavelength(w1,w0,waves_angstrom,&
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
 !
-  call pre_calc_opacity_quantities()
+  call pre_calc_opacity_quantities(waves_angstrom)
 ! 
   if (lread_athena) call read_athena_input(inputfile)
   
@@ -129,7 +129,7 @@ program flux_feautrier
           stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
           call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
                T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,nu_Hz(iw),hm_bf_factor,stim_factor,&
-               ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+               ionization_factor,opacity,albedo,iw) ! output: omega, and absorp_coeff
         endif
 !
 ! Populate coefficient arrays
