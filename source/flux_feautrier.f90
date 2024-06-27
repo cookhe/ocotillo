@@ -39,10 +39,10 @@ program flux_feautrier
 !
   logical :: lgrey=.false.,lread_athena=.true.
   logical :: lroot
-  character(len=90) :: snapshot="0000"
-  character(len=90) :: inputfile
+  character(len=90) :: snapshot
+  character(len=90) :: inputfile='./input.in'
 !
-  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena,snapshot
+  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !
 ! Start the time counter
 !
@@ -50,7 +50,9 @@ program flux_feautrier
 !
 !  Read the input namelist with the user-defined parameters.
 !
-  inputfile = './input_'//trim(snapshot)//'.in'
+  call getarg(1,snapshot)
+  if (snapshot=='') snapshot="0000"      
+!
   open(20,file=trim(inputfile))
   read(20,nml=input)
   close(20)
