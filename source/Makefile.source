@@ -6,7 +6,7 @@ FC=mpif90
 FFLAGS = -O3 -fdefault-real-8 -fdefault-double-8 -Wall -finit-real=NaN -finit-integer=-2147483648 -g -fbacktrace -fimplicit-none -fcheck=all -ffpe-trap=invalid,zero,overflow,denormal 
 #FFLAGS += -pg
 
-compile: common.f90 disk.f90 auxiliary.f90 continuous_opacity.f90 gas_state.f90 flux_feautrier.f90 read_athena.f90 io.f90 ../input.in ../resolution.in
+compile: common.f90 disk.f90 auxiliary.f90 continuous_opacity.f90 gas_state.f90 flux_feautrier.f90 read_athena.f90 io.f90 ../resolution.in
 	$(FC) $(FFLAGS) -c common.f90 
 	$(FC) $(FFLAGS) -c disk.f90 
 	$(FC) $(FFLAGS) -c auxiliary.f90 

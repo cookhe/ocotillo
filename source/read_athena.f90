@@ -12,25 +12,26 @@ module ReadAthena
 
   character(len=90)   :: RunName
   character(len=90)   :: datadir="./input_athena/distributed"
-  character(len=90)   :: snapshot="0000"
 
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
 
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-       aspect_ratio,mean_molecular_weight,rho0,datadir,snapshot
+       aspect_ratio,mean_molecular_weight,rho0,datadir
   
 contains
 !************************************************************************************
-  subroutine read_athena_input()
+  subroutine read_athena_input(inputfile)
 !
-      open(40,file='./input.in')
-      read(40,nml=athena_input)
-      close(40)
+    character(len=90)   :: inputfile
+!    
+    open(40,file=trim(inputfile))
+    read(40,nml=athena_input)
+    close(40)
 !
   endsubroutine read_athena_input
 !************************************************************************************
-  subroutine read_from_athena(z,dz,rho,temp,iprocx,iprocy)
+  subroutine read_from_athena(z,dz,rho,temp,iprocx,iprocy,snapshot)
 !
       integer(c_int) :: nxloc_,nyloc_,nzloc
       real(c_double) :: gamma1
@@ -55,7 +56,7 @@ contains
       real, intent(out) :: dz
       integer :: iproc,iprocz
       integer, intent(in) :: iprocx,iprocy
-      character(len=90)   :: head,tail,filename,sproc,base
+      character(len=90)   :: head,tail,filename,sproc,base,snapshot
 !
       real :: z0
       integer :: iz0
@@ -221,12 +222,12 @@ contains
 !
     endsubroutine postprocess_athena_values
 !************************************************************************************
-  subroutine output_binary(U,absorp_coeff,iprocx,iprocy)
+  subroutine output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
 
     real, dimension(mz,nyloc,nxloc,nw) :: U
     real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
     integer :: iprocx,iprocy
-    character(len=90) :: outputdir
+    character(len=90) :: outputdir,snapshot
 
     outputdir = 'output/procx'//trim(itoa(iprocx))//'_procy'//trim(itoa(iprocy))
     call system('mkdir -p '//trim(outputdir))

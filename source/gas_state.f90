@@ -14,11 +14,12 @@ module GasState
   
 contains
 !******************************************
-  subroutine read_gas_state_input()
+  subroutine read_gas_state_input(inputfile)
 
     integer :: iu
-
-    open(newunit=iu,file='./input.in')
+    character(len=90)   :: inputfile
+    
+    open(newunit=iu,file=trim(inputfile))
     read(iu,nml=gas_state_input)
     close(iu)
 

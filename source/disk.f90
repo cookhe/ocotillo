@@ -17,21 +17,25 @@ module Disk
 
 contains
 !************************************************************************************
-   subroutine read_temperature_input()
+   subroutine read_temperature_input(inputfile)
 !
-     open(30,file='./input.in')
-     read(30,nml=temperature_input)
-     close(30)
+    character(len=90)   :: inputfile
+!
+    open(30,file=trim(inputfile))
+    read(30,nml=temperature_input)
+    close(30)
 !
     switchTemp = (1+epsi) * isoTemp ! must be larger than mdiTemp
 !
    endsubroutine read_temperature_input
 !************************************************************************************
-   subroutine read_density_input()
+   subroutine read_density_input(inputfile)
 !
-     open(30,file='./input.in')
-     read(30,nml=density_input)
-     close(30)
+    character(len=90)   :: inputfile
+!     
+    open(30,file=trim(inputfile))
+    read(30,nml=density_input)
+    close(30)
 !
    endsubroutine read_density_input
 !************************************************************************************
@@ -134,10 +138,6 @@ contains
     real, dimension(nz), intent(inout) :: rho
     real, dimension(mz), intent(in) :: z
     integer :: i
-!
-    open(40,file='./input.in')
-    read(40,nml=density_input)
-    close(40)
 !
     rho = rho0*exp(-.5*z(n1:n2)**2/H**2)
 !

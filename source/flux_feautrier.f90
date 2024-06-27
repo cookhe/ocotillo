@@ -38,19 +38,20 @@ program flux_feautrier
   integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
-  logical :: lroot 
+  logical :: lroot
+  character(len=90) :: snapshot="0000"
+  character(len=90) :: inputfile
 !
-  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
+  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena,snapshot
 !
 ! Start the time counter
 !
   call cpu_time(start)
 !
-  
-!
 !  Read the input namelist with the user-defined parameters.
 !
-  open(20,file='./input.in')
+  inputfile = './input_'//trim(snapshot)//'.in'
+  open(20,file=trim(inputfile))
   read(20,nml=input)
   close(20)
 !
@@ -65,16 +66,16 @@ program flux_feautrier
 !
 ! Calculate the grid variables
 !
-  call read_temperature_input()
-  call read_density_input()
-  call read_gas_state_input()
+  call read_temperature_input(inputfile)
+  call read_density_input(inputfile)
+  call read_gas_state_input(inputfile)
 !
   call calc_wavelength(w1,w0,waves_angstrom,&
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
 !
   call pre_calc_opacity_quantities()
 ! 
-  if (lread_athena) call read_athena_input()
+  if (lread_athena) call read_athena_input(inputfile)
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! loop through processors  
@@ -82,7 +83,7 @@ program flux_feautrier
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   lroot = (iprocx==0) .and. (iprocy==0)
   if (lread_athena) then
-     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy)
+     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
      call calc_grid(z1,z0,z,dz)
      call calc_density(rho,z)
@@ -158,7 +159,7 @@ program flux_feautrier
     !Output for diagnostic purposes 
     call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
   endif
-  call output_binary(U,absorp_coeff,iprocx,iprocy)
+  call output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
   enddo;enddo
 ! 
 ! Finish the time counter and print the wall time
