@@ -25,7 +25,7 @@ program flux_feautrier
   real, dimension(nz) :: electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
-  real, dimension(nw) :: waves_cm,waves1_cm,nu_Hz
+  real, dimension(nw) :: waves_cm,waves1_cm
   real, dimension(nw) :: waves_angstrom,waves1_angstrom
 !
   real :: wave_cm,wave_angstrom,wave1_cm,wave1_angstrom
@@ -72,7 +72,7 @@ program flux_feautrier
   call read_gas_state_input(inputfile)
 !
   call calc_wavelength(w1,w0,waves_angstrom,&
-       waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
+       waves1_angstrom,waves_cm,waves1_cm)
 !
   call pre_calc_opacity_quantities(waves_angstrom,waves_cm)
 ! 
@@ -128,7 +128,7 @@ program flux_feautrier
           source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
           stim_factor = get_hydrogen_stimulated_emission(iw,theta)
           call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-               T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,nu_Hz(iw),hm_bf_factor,stim_factor,&
+               T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,hm_bf_factor,stim_factor,&
                ionization_factor,opacity,albedo,iw) ! output: omega, and absorp_coeff
         endif
 !
