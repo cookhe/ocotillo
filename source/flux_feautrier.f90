@@ -141,6 +141,7 @@ program flux_feautrier
 !
         if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
         call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
+        call update_ghosts(U(:,iy,ix,iw))
         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
 !
         absorp_coeff(:,iy,ix,iw)=opacity
