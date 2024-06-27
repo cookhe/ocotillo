@@ -161,7 +161,7 @@ program flux_feautrier
 !
   call cpu_time(finish)
   print*,"Wall time = ",finish-start," seconds."
-  print*,"Execution time =",(finish-start)/(nz*nyloc*nxloc*nw)*1e6,&
+  print*,"Execution time =",(finish-start)/(nz*ny*nx*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
 !
 endprogram flux_feautrier
