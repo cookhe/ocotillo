@@ -16,7 +16,9 @@ rt_setup
 make
 ./source/flux_feautrier.x
 diff output/diagnostics.txt reference.out
-echo 
+echo
+echo "========================================================================"
+echo
 
 datadir=$SPECRT_HOME"/samples/NongreyAGN"
 echo $datadir
@@ -26,7 +28,9 @@ rt_setup
 make
 ./source/flux_feautrier.x
 diff output/diagnostics.txt reference.out
-echo 
+echo
+echo "========================================================================"
+echo
 
 datadir=$SPECRT_HOME"/samples/ReadFromAthena"
 echo $datadir
@@ -37,6 +41,9 @@ make
 ./source/flux_feautrier.x
 diff output/diagnostics.txt reference.out
 cd $old_dir
+echo
+echo "========================================================================"
+echo
 
 datadir=$SPECRT_HOME"/samples/multiInTest"
 echo $datadir
@@ -47,4 +54,6 @@ make
 ./source/flux_feautrier.x
 diff output/diagnostics.txt reference.out
 cd $old_dir
-
+echo
+echo "========================================================================"
+echo
