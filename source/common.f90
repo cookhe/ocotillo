@@ -62,6 +62,7 @@ module Common
   real, parameter :: Rcm = 2 * pi**2 * me_cgs * e_electron_cgs**4 / (h_planck**3 * c_light_cgs)
   real, parameter :: Iev = h_planck*c_light_cgs*Rcm * 6.2419d11 ! convert to eV
   real :: Iev1 = 1./Iev
+  real :: bremsstrahlung_constant = 369234910.67735046 ! exp(log(4./3) + 6*log(e) - log(me*h*c) + 0.5*log(2*pi) - 0.5*log(3*me*kb))
 !  
   logical :: lfirst,lroot
 !
