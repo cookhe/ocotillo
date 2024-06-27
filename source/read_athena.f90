@@ -8,13 +8,17 @@ module ReadAthena
 
   private
 
-  public :: read_from_athena,read_athena_input,output_binary
+  public :: read_from_athena,read_athena_input
 
   character(len=90)   :: RunName
   character(len=90)   :: datadir="./input_athena/distributed"
 
   real :: Mbh_SolarMasses,r0ref_rg
   real :: aspect_ratio,mean_molecular_weight,rho0
+
+  real :: rg,Mbh,rr,g0,Omega,H
+  real :: unit_time,unit_length,unit_velocity
+  real :: unit_density,unit_temperature
 
   namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
        aspect_ratio,mean_molecular_weight,rho0,datadir
@@ -28,6 +32,27 @@ contains
     open(40,file=trim(inputfile))
     read(40,nml=athena_input)
     close(40)
+!
+    Mbh   = Mbh_SolarMasses*SolarMass
+    rg    = 2 * (G_Newton_cgs/c_light_cgs**2) * Mbh
+    rr    = r0ref_rg * rg
+    g0    = G_Newton_cgs*Mbh
+    Omega = sqrt(g0)*rr**(-1.5)
+    H = aspect_ratio * rr
+!
+! code units for conversion
+!
+    unit_density  = rho0
+    unit_time     = 1./Omega
+    unit_length   = H
+    unit_velocity = unit_length/unit_time
+    unit_temperature = mean_molecular_weight * amu *  k1_cgs  * unit_velocity**2
+!
+    print*,'unit_time        = ',unit_time,' s'
+    print*,'unit_length      = ',unit_length,' cm'
+    print*,'unit_velocity    = ',unit_velocity,' cm/s'
+    print*,'unit_density     = ',unit_density,' g/cm3'
+    print*,'unit_temperature = ',unit_temperature,' K'
 !
   endsubroutine read_athena_input
 !************************************************************************************
@@ -85,7 +110,6 @@ contains
           stop
         endif
 
-        print*,"Reading ",trim(filename)
         open(99, file = trim(filename), form = 'unformatted', ACCESS='stream')
 
         read(99) dummy1_int !coordsys
@@ -159,8 +183,6 @@ contains
         close(99)        
       enddo
 !  
-      print*,"Done reading all files"
-!
       call postprocess_athena_values(rho,temp,zn,z,dz,gamma1)
 !
     endsubroutine read_from_athena
@@ -173,28 +195,10 @@ contains
       real, intent(in) :: gamma1
       real, intent(out) :: dz
 !
-      real :: rg,Mbh,rr,g0,Omega,H
-      real :: unit_time,unit_length,unit_velocity
-      real :: unit_density,unit_temperature
       integer :: i,ix,iy
 !
-      Mbh   = Mbh_SolarMasses*SolarMass
-      rg    = 2 * (G_Newton_cgs/c_light_cgs**2) * Mbh
-      rr    = r0ref_rg * rg
-      g0    = G_Newton_cgs*Mbh
-      Omega = sqrt(g0)*rr**(-1.5)
-      H = aspect_ratio * rr
-!
-! code units for conversion
-!
-      unit_density  = rho0
-      unit_time     = 1./Omega
-      unit_length   = H
-      unit_velocity = unit_length/unit_time
-      unit_temperature = gamma1 * mean_molecular_weight * amu *  k1_cgs  * unit_velocity**2      
-!
-      rho = rho*unit_density      
-      temp = temp*unit_temperature
+      rho = rho*unit_density
+      temp = temp*gamma1*unit_temperature
 !
       zn=zn*unit_length
       dz=(zn(nz)-zn(1))/(nz-1)
@@ -209,39 +213,13 @@ contains
         call calc_temperature(temp(:,iy,ix),z,lfrom_read_athena=.true.)
       enddo; enddo
 !
-      print*,'unit_time        = ',unit_time,' s'
-      print*,'unit_length      = ',unit_length,' cm'
-      print*,'unit_velocity    = ',unit_velocity,' cm/s'
-      print*,'unit_density     = ',unit_density,' g/cm3'
-      print*,'unit_temperature = ',unit_temperature,' K'
-!
-      print*,'minval(rho),maxval(rho),mean(rho)',&
-           minval(rho),maxval(rho),sum(rho)/(nxloc*nyloc*nz)
-      print*,'minval(T),maxval(T),mean(T)',&
-           minval(temp),maxval(temp),sum(temp)/(nxloc*nyloc*nz)
+      if (lroot) then
+        print*,'minval(rho),maxval(rho),mean(rho)',&
+             minval(rho),maxval(rho),sum(rho)/(nxloc*nyloc*nz)
+        print*,'minval(T),maxval(T),mean(T)',&
+             minval(temp),maxval(temp),sum(temp)/(nxloc*nyloc*nz)
+      endif
 !
     endsubroutine postprocess_athena_values
-!************************************************************************************
-  subroutine output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
-
-    real, dimension(mz,nyloc,nxloc,nw) :: U
-    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
-    integer :: iprocx,iprocy
-    character(len=90) :: outputdir,snapshot
-
-    outputdir = 'output/procx'//trim(itoa(iprocx))//'_procy'//trim(itoa(iprocy))
-    call system('mkdir -p '//trim(outputdir))
-    
-    open(35, file=trim(outputdir)//'/mean_intensity_'//trim(snapshot)//'.bin', &
-         form='unformatted',status='replace',action='write')
-    write(35) U
-    close(35)
-
-    open(45, file=trim(outputdir)//'/absorption_coefficients_'//trim(snapshot)//'.bin', &
-         form='unformatted',status='replace',action='write')
-    write(45) absorp_coeff
-    close(45)
-
-  endsubroutine output_binary
 !************************************************************************************
   endmodule ReadAthena

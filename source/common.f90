@@ -63,7 +63,7 @@ module Common
   real, parameter :: Iev = h_planck*c_light_cgs*Rcm * 6.2419d11 ! convert to eV
   real :: Iev1 = 1./Iev
 !  
-  logical :: lfirst
+  logical :: lfirst,lroot
 !
   real, parameter :: G_Newton_cgs=6.6742d-8
   real :: SolarMass=1.988409870698051e+33

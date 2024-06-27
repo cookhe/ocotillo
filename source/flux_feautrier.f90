@@ -38,7 +38,6 @@ program flux_feautrier
   integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
-  logical :: lroot
   character(len=90) :: snapshot
   character(len=90) :: inputfile='./input.in'
 !
@@ -85,11 +84,11 @@ program flux_feautrier
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   lroot = (iprocx==0) .and. (iprocy==0)
   if (lread_athena) then
-     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
+    call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
-     call calc_grid(z1,z0,z,dz)
-     call calc_density(rho,z)
-     call calc_temperature(T,z)
+    call calc_grid(z1,z0,z,dz)
+    call calc_density(rho,z)
+    call calc_temperature(T,z)
   endif
 !
 !***********************************************************************
@@ -116,35 +115,35 @@ program flux_feautrier
 ! Loop over wavelengths
 !
       wavelength: do iw=1,nw
-         lfirst=(ix==1).and.(iy==1).and.(iw==1) 
-         wave_cm = waves_cm(iw)
-         wave1_cm = waves1_cm(iw)
-         if (lfirst) print*, 'waves_cm min/max',minval(waves_cm),maxval(waves_cm)
-         wave_angstrom = waves_angstrom(iw)
-         wave1_angstrom = waves1_angstrom(iw)
+        lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
+        wave_cm = waves_cm(iw)
+        wave1_cm = waves1_cm(iw)
+        if (lfirst) print*, 'waves_cm min/max',minval(waves_cm),maxval(waves_cm)
+        wave_angstrom = waves_angstrom(iw)
+        wave1_angstrom = waves1_angstrom(iw)
 !    
-         if (lgrey) then
-            call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
-         else
-            source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
-            stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
-            call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-                 T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,nu_Hz(iw),hm_bf_factor,stim_factor,&
-                 ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
-         endif
+        if (lgrey) then
+          call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
+        else
+          source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
+          stim_factor = get_hydrogen_stimulated_emission(wave1_angstrom,theta)
+          call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
+               T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,wave_cm,nu_Hz(iw),hm_bf_factor,stim_factor,&
+               ionization_factor,opacity,albedo) ! output: omega, and absorp_coeff
+        endif
 !
 ! Populate coefficient arrays
 !
-         call fill_center_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)
-         call fill_boundary_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)    
+        call fill_center_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)
+        call fill_boundary_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)    
 !
 ! Solve the system of equations
 !
-         if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
-         call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
-         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
+        if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
+        call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
+        if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
 !
-         absorp_coeff(:,iy,ix,iw)=opacity
+        absorp_coeff(:,iy,ix,iw)=opacity
 !
       enddo wavelength
     enddo yloop

@@ -5,12 +5,8 @@ module FileIO
   implicit none
   private
   
-  public :: output_ascii,output_grid,itoa,file_exists
+  public :: output_ascii,output_grid,itoa,file_exists,output_binary
   
-  !interface operator( .f. )
-  !   module procedure file_exists
-  !endinterface operator( .f. )
-
 contains
 !************************************************************************************
   function file_exists(filename) result(res)
@@ -65,4 +61,26 @@ contains
 !    
   endsubroutine output_grid
 !************************************************************************************  
+  subroutine output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
+
+    real, dimension(mz,nyloc,nxloc,nw) :: U
+    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
+    integer :: iprocx,iprocy
+    character(len=90) :: outputdir,snapshot
+
+    outputdir = 'output/procx'//trim(itoa(iprocx))//'_procy'//trim(itoa(iprocy))
+    call system('mkdir -p '//trim(outputdir))
+
+    open(35, file=trim(outputdir)//'/mean_intensity_'//trim(snapshot)//'.bin', &
+         form='unformatted',status='replace',action='write')
+    write(35) U
+    close(35)
+
+    open(45, file=trim(outputdir)//'/absorption_coefficients_'//trim(snapshot)//'.bin', &
+         form='unformatted',status='replace',action='write')
+    write(45) absorp_coeff
+    close(45)
+
+  endsubroutine output_binary
+!************************************************************************************
 end module FileIO
