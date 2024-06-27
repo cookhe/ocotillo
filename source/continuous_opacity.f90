@@ -20,16 +20,19 @@ module ContinuousOpacity
   real, dimension(7) :: a_coeff
   real, dimension(3,5) :: b_coeff
   real :: AHbf = 1.0449e-26
-  real, dimension(6) :: n1_array
   real :: Rangstrom=1.0968e-3 ! Rcm = 2 * pi**2 * me * e**4 / (h**3 * c) 
   real :: alpha0=1.0443e-26     ! absorption per electron
-  real, dimension(nw,3) :: f
+  real, dimension(nw,3) :: f_coeff
+  integer, parameter :: mdim=6
+  real, dimension(mdim) :: n1_array
+  real, dimension(nw,mdim) :: g
+  real :: chi_m
   
 contains
 !************************************************************************************
-  subroutine pre_calc_opacity_quantities(waves)
+  subroutine pre_calc_opacity_quantities(waves_angstrom,waves_cm)
 
-    real, dimension(nw) :: waves,lgwave
+    real, dimension(nw) :: waves_angstrom,waves_cm,lgwave
     integer :: n,iw,i,j
 
     a_coeff = (/+1.99654,&
@@ -46,16 +49,21 @@ contains
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
          (/ size(b_coeff, 2), size(b_coeff, 1) /)))
 
-    do n=1,6
+    do n=1,mdim
        n1_array(n)=1./n
-    enddo
-!
-    lgwave=log10(waves)
+       do iw=1,nw
+         call gaunt(n, waves_cm(iw), g(iw,n))
+       enddo
+    enddo    
+    ! excitation energy of state level m
+    chi_m = RydbergEnergy * (1. - n1_array(mdim)**2)
+
+    lgwave=log10(waves_angstrom)
     do iw=1,nw
       do i=1,3
-        f(iw,i)=0.
+        f_coeff(iw,i)=0.
         do j=1,5
-          f(iw,i) = f(iw,i) + lgwave(iw)**(j-1) * b_coeff(i,j)
+          f_coeff(iw,i) = f_coeff(iw,i) + lgwave(iw)**(j-1) * b_coeff(i,j)
         enddo
       enddo
     enddo
@@ -108,7 +116,7 @@ contains
     intent(in)   :: wave_angstrom,wave_cm,nu_Hz,hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    kappa_H_bf  = get_kappa_H_bf(wave_angstrom, wave_cm, temp, temp1, stim_factor * ionization_factor)
+    kappa_H_bf  = get_kappa_H_bf(wave_angstrom, temp, temp1, stim_factor * ionization_factor, iw)
     kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor)
     kappa_Hm_ff = get_kappa_Hm_ff(ne,temp,lgtheta,lgtheta2,ionization_factor,iw)
 
@@ -122,7 +130,7 @@ contains
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
-  function get_kappa_H_bf(waves_ang, waves_cm, temp, temp1, factor) result(kappa_H_bf)
+  function get_kappa_H_bf(waves_ang, temp, temp1, factor, iw) result(kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
 !    1 to m-1 excitation states, where m is the principal quantum
@@ -147,24 +155,23 @@ contains
 !    """
 !    
     real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
-    integer :: m=6, n
-    real :: chi_n,chi_m,waves_ang,waves_cm,g
+    integer :: n, iw
+    real :: chi_n,waves_ang
 !
-    intent(in) :: waves_ang, waves_cm, temp, temp1, factor
+    intent(in) :: waves_ang, temp, temp1, factor
 !
     ! sum for the first m-1 excitation states
     sm = 0.
     ktemp = k_cgs*temp
     ktemp1 = k1_cgs*temp1
     
-    do n=1,m
+    do n=1,mdim
       chi_n = RydbergEnergy * (1. - 1.*n1_array(n)**2)
-      call gaunt(n, waves_cm, g)
-      sm = sm + g*n1_array(n)**3 * exp(-chi_n*ktemp1)
-    enddo
+      sm = sm + g(iw,n)*n1_array(n)**3 * exp(-chi_n*ktemp1)
+   enddo
     
     ! excitation energy of state level m
-    chi_m = RydbergEnergy * (1. - 1./m**2)
+    !stop
     
     ! Unsold approximation integral
     C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
@@ -278,7 +285,7 @@ contains
 !
     ! fit coefficients
     
-    flam = f(iw,1) + f(iw,2)*lgtheta + f(iw,3)*lgtheta2 - 26
+    flam = f_coeff(iw,1) + f_coeff(iw,2)*lgtheta + f_coeff(iw,3)*lgtheta2 - 26
 
     kappa_Hm_ff = factor * ne * k_cgs * temp * 10**(flam)
 

@@ -74,7 +74,7 @@ program flux_feautrier
   call calc_wavelength(w1,w0,waves_angstrom,&
        waves1_angstrom,waves_cm,waves1_cm,nu_Hz)
 !
-  call pre_calc_opacity_quantities(waves_angstrom)
+  call pre_calc_opacity_quantities(waves_angstrom,waves_cm)
 ! 
   if (lread_athena) call read_athena_input(inputfile)
   
