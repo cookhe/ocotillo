@@ -61,9 +61,9 @@ contains
 !
     endsubroutine calc_grid
 !************************************************************************************
-    subroutine calc_wavelength(w1,w0,wa,wa1,wc,wc1,nu)
+    subroutine calc_wavelength(w1,w0,wa,wa1,wc,wc1)
 !
-      real, dimension(nw), intent(out) :: wa,wa1,wc,wc1,nu
+      real, dimension(nw), intent(out) :: wa,wa1,wc,wc1
       real, intent(in) :: w1,w0
       real :: dw
       integer :: i
@@ -81,8 +81,6 @@ contains
       wc  = wa*1d-8 !wavelengths in cm
       wc1 = 1./wc
       print*, 'waves_angstrom min/max', minval(wa),maxval(wa)
-!
-      nu = c_light_cgs/wc
 !
     endsubroutine calc_wavelength
 !************************************************************************************
