@@ -38,12 +38,15 @@ program flux_feautrier
   integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
+  logical :: lroot 
 !
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !
 ! Start the time counter
 !
-  call cpu_time(start)    
+  call cpu_time(start)
+!
+  
 !
 !  Read the input namelist with the user-defined parameters.
 !
@@ -75,8 +78,9 @@ program flux_feautrier
   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! loop through processors  
-  do iprocx=0,nprocx-1; do iprocy=0,nprocy-1
+  do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+  lroot = (iprocx==0) .and. (iprocy==0)
   if (lread_athena) then
      call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy)
   else
@@ -149,7 +153,7 @@ program flux_feautrier
 !
 ! Write output
 !
-  if ((iprocx==0) .and. (iprocy==0)) then
+  if (lroot) then
     call output_grid(z)
     !Output for diagnostic purposes 
     call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))

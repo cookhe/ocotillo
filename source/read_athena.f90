@@ -8,10 +8,10 @@ module ReadAthena
 
   private
 
-  public :: read_from_athena,read_athena_input
+  public :: read_from_athena,read_athena_input,output_binary
 
   character(len=90)   :: RunName
-  character(len=90)   :: datadir="./output_athena/distributed"
+  character(len=90)   :: datadir="./input_athena/distributed"
   character(len=90)   :: snapshot="0000"
 
   real :: Mbh_SolarMasses,r0ref_rg
@@ -220,5 +220,27 @@ contains
            minval(temp),maxval(temp),sum(temp)/(nxloc*nyloc*nz)
 !
     endsubroutine postprocess_athena_values
+!************************************************************************************
+  subroutine output_binary(U,absorp_coeff,iprocx,iprocy)
+
+    real, dimension(mz,nyloc,nxloc,nw) :: U
+    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
+    integer :: iprocx,iprocy
+    character(len=90) :: outputdir
+
+    outputdir = 'output/procx'//trim(itoa(iprocx))//'_procy'//trim(itoa(iprocy))
+    call system('mkdir -p '//trim(outputdir))
+    
+    open(35, file=trim(outputdir)//'/mean_intensity_'//trim(snapshot)//'.bin', &
+         form='unformatted',status='replace',action='write')
+    write(35) U
+    close(35)
+
+    open(45, file=trim(outputdir)//'/absorption_coefficients_'//trim(snapshot)//'.bin', &
+         form='unformatted',status='replace',action='write')
+    write(45) absorp_coeff
+    close(45)
+
+  endsubroutine output_binary
 !************************************************************************************
   endmodule ReadAthena

@@ -5,7 +5,7 @@ module FileIO
   implicit none
   private
   
-  public :: output_ascii,output_grid,output_binary,itoa,file_exists
+  public :: output_ascii,output_grid,itoa,file_exists
   
   !interface operator( .f. )
   !   module procedure file_exists
@@ -38,7 +38,7 @@ contains
     real, dimension(nz,nw) :: absorp_coeff
     integer :: i,iw
 !
-    open(10,file="output/diagnostics.dat",status="replace",action='write')
+    open(10,file="output/diagnostics.txt",status="replace",action='write')
     do i=1,nz
       do iw=1,nw
          write(unit=10,FMT="(2I6,2e15.5)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
@@ -53,37 +53,16 @@ contains
     real, dimension(mz) :: z
     integer :: i
 !
-    open(15,file="output/zgrid.dat",status="replace",action='write')
+    open(15,file="output/zgrid.txt",status="replace",action='write')
     do i=1,nz
       write(unit=15,FMT=*) i,z(n1+i-1)
     enddo
     close(15)
 !
-    open(55, file='output/zgrid.fvar',form='unformatted',status='replace',action='write')
+    open(55, file='output/zgrid.bin',form='unformatted',status='replace',action='write')
     write(55) z
     close(55)
 !    
   endsubroutine output_grid
 !************************************************************************************  
-  subroutine output_binary(U,absorp_coeff,iprocx,iprocy)
-
-    real, dimension(mz,nyloc,nxloc,nw) :: U
-    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
-    integer :: iprocx,iprocy
-    character(len=90) :: proc_str
-
-    proc_str = '_xproc'//trim(itoa(iprocx))//'_yproc'//trim(itoa(iprocy))
-    
-    open(35, file='output/mean_intensity'//trim(proc_str)//'.fvar', &
-         form='unformatted',status='replace',action='write')
-    write(35) U
-    close(35)
-
-    open(45, file='output/absorption_coefficients'//trim(proc_str)//'.fvar', &
-         form='unformatted',status='replace',action='write')
-    write(45) absorp_coeff
-    close(45)
-
-  endsubroutine output_binary
-!************************************************************************************
 end module FileIO

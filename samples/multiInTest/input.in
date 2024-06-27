@@ -23,7 +23,7 @@
 !
 ! For reading
 !
-  datadir="./output_athena/distributed"
+  datadir="./input_athena/distributed"
   RunName="agn_snova_3d"
 !
   snapshot='0000'
