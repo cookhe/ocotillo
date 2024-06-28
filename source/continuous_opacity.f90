@@ -4,7 +4,6 @@
 module ContinuousOpacity
 
   use Common
-  use Columns
 
   implicit none
   private

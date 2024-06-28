@@ -2,7 +2,6 @@
 module GasState
 
   use Common
-  use Columns
   
   implicit none
   private

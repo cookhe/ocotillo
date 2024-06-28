@@ -2,7 +2,6 @@ program flux_feautrier
 
   use Auxiliary
   use Common
-  use Columns
   use Disk
   use GasState
   use ContinuousOpacity

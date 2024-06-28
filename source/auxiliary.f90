@@ -1,7 +1,6 @@
 module Auxiliary
 
   use Common
-  use Columns
 
   implicit none
   private
