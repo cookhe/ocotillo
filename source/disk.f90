@@ -2,7 +2,6 @@
 module Disk
 
   use Common
-  use Columns
 
   implicit none
   private
@@ -112,7 +111,6 @@ contains
    subroutine calc_density(rho,z)
 !
      real, dimension(nz), intent(inout) :: rho
-     !type(column_case) :: c
      real, dimension(mz), intent(in) :: z
      integer :: i
 !
