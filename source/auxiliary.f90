@@ -96,57 +96,57 @@ contains
 !
   endsubroutine calc_auxiliaries
 !************************************************************************************
-  subroutine fill_center_coeffs(aa,bb,cc,dd,c,dz)
+  subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz) :: kappa_m,kappa_p
     real, intent(in) :: dz
     real :: zeta
     integer :: iz
-    type (column_case) :: c
+    type (pillar_case) :: p
   
     ! Populate opacities at point i+1/2
     do iz=1, nz-1
-      kappa_p(iz) = 0.5 * (c%opacity(iz+1) + c%opacity(iz))
+      kappa_p(iz) = 0.5 * (p%opacity(iz+1) + p%opacity(iz))
     enddo
      
     ! Populate opacities at point i-1/2
     do iz=2, nz
-      kappa_m(iz) = 0.5 * (c%opacity(iz) + c%opacity(iz-1))
+      kappa_m(iz) = 0.5 * (p%opacity(iz) + p%opacity(iz-1))
     enddo
 
     ! Populate centers of arrays 
     do iz=2, nz-1
-      aa(iz) = c%opacity(iz)**2 / kappa_m(iz)
-      cc(iz) = c%opacity(iz)**2 / kappa_p(iz)
-      zeta   = dz*dz * c%opacity(iz)**3 * (1 - c%albedo(iz))
+      aa(iz) = p%opacity(iz)**2 / kappa_m(iz)
+      cc(iz) = p%opacity(iz)**2 / kappa_p(iz)
+      zeta   = dz*dz * p%opacity(iz)**3 * (1 - p%albedo(iz))
       bb(iz) = -(aa(iz) + cc(iz) + zeta)
-      dd(iz) = -c%source_function(iz) * zeta
+      dd(iz) = -p%source_function(iz) * zeta
     enddo
 
     if (lfirst) print*, ' Filled center coeffs'
     
   endsubroutine fill_center_coeffs
 !************************************************************************************
-  subroutine fill_boundary_coeffs(aa,bb,cc,dd,c,dz)
+  subroutine fill_boundary_coeffs(aa,bb,cc,dd,p,dz)
     
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, intent(in) :: dz
     real :: zeta
 
-    type (column_case) :: c
+    type (pillar_case) :: p
   
     ! Populate boundary values
     aa(1) = 0.
-    zeta  = c%opacity(1) * dz**2 * (1 - c%albedo(1)) / 4
-    bb(1) = -(1/c%opacity(1) + dz + zeta) * c%opacity(1)**2
-    cc(1) = 1/c%opacity(1) * c%opacity(1)**2
-    dd(1) = -c%source_function(1) * zeta * c%opacity(1)**2
+    zeta  = p%opacity(1) * dz**2 * (1 - p%albedo(1)) / 4
+    bb(1) = -(1/p%opacity(1) + dz + zeta) * p%opacity(1)**2
+    cc(1) = 1/p%opacity(1) * p%opacity(1)**2
+    dd(1) = -p%source_function(1) * zeta * p%opacity(1)**2
     
-    aa(nz) = 1/c%opacity(nz) * c%opacity(nz)**2
-    zeta   = c%opacity(nz) * dz**2 * (1 - c%albedo(nz)) / 4
-    bb(nz) = -(1/c%opacity(nz) + dz + zeta) * c%opacity(nz)**2
+    aa(nz) = 1/p%opacity(nz) * p%opacity(nz)**2
+    zeta   = p%opacity(nz) * dz**2 * (1 - p%albedo(nz)) / 4
+    bb(nz) = -(1/p%opacity(nz) + dz + zeta) * p%opacity(nz)**2
     cc(nz) = 0.
-    dd(nz) = -c%source_function(nz) * zeta * c%opacity(nz)**2
+    dd(nz) = -p%source_function(nz) * zeta * p%opacity(nz)**2
 
     if (lfirst) print*, ' Filled boundary coeffs'
     

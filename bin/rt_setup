@@ -43,7 +43,7 @@ echo "Linking files in '$src'."
 old_dir="`pwd`"
 cd $src
 to_link=
-for file in $srcdir/*.f90  $srcdir/Makefile.source
+for file in $srcdir/*.f90  $srcdir/Makefile.source $srcdir/pillars.inc
 do
     if [ -f $file ]; then
 	if [ -h "`basename $file`" ]; then

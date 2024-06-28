@@ -10,7 +10,7 @@ program flux_feautrier
   
   implicit none
 
-  type (column_case) :: c
+  type (pillar_case) :: p
   
   real, dimension(mz,nyloc,nxloc,nw) :: U
   real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
@@ -72,8 +72,8 @@ program flux_feautrier
     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
     call calc_grid(z1,z0,z,dz)
-    call calc_density(c%rho,z)
-    call calc_temperature(c%T,z)
+    call calc_density(p%rho,z)
+    call calc_temperature(p%T,z)
   endif
 !
 !***********************************************************************
@@ -83,20 +83,20 @@ program flux_feautrier
   xloop: do ix=1,nxloc
     yloop: do iy=1,nyloc
       if (lread_athena) then
-        c%rho =  rho3d(1:nz,iy,ix)
-        c%T   = temp3d(1:nz,iy,ix)
+        p%rho =  rho3d(1:nz,iy,ix)
+        p%T   = temp3d(1:nz,iy,ix)
       endif
-      c%rho1=1./c%rho
-      c%T1=1./c%T
-      call calc_hydrogen_ion_frac(c)
-      call solve_gas_state(c)!rho,rho1,NHII_NHINHII,number_density,inv_number_density,nHI,nHII,ne,ionization_factor)
-      c%electron_pressure = get_electron_pressure(c) !ne,T)
-      c%e_scatter         = get_electron_thomson_scattering(c)!inv_number_density,nHII)
-      c%theta             = 5040.* c%T1
-      c%theta1            = 1./c%theta
-      c%lgtheta           = log10(c%theta)
-      c%lgtheta2          = c%lgtheta**2
-      c%hm_bf_factor      = get_hydrogen_ion_bound_free(c) !electron_pressure,theta)
+      p%rho1=1./p%rho
+      p%T1=1./p%T
+      call calc_hydrogen_ion_frac(p)
+      call solve_gas_state(p)
+      p%electron_pressure = get_electron_pressure(p)
+      p%e_scatter         = get_electron_thomson_scattering(p)
+      p%theta             = 5040.* p%T1
+      p%theta1            = 1./p%theta
+      p%lgtheta           = log10(p%theta)
+      p%lgtheta2          = p%lgtheta**2
+      p%hm_bf_factor      = get_hydrogen_ion_bound_free(p)
 !
 ! Loop over wavelengths
 !
@@ -104,17 +104,17 @@ program flux_feautrier
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
 !    
         if (lgrey) then
-          call grey_parameters(c,sigma_grey) !rho,T,sigma_grey,source_function,opacity,albedo)
+          call grey_parameters(p,sigma_grey)
         else
-          c%source_function = get_source_function(c%T1,iw)
-          c%stim_factor = get_hydrogen_stimulated_emission(iw,c%theta)
-          call calc_opacity_and_albedo(c,iw)
+          p%source_function = get_source_function(p%T1,iw)
+          p%stim_factor = get_hydrogen_stimulated_emission(iw,p%theta)
+          call calc_opacity_and_albedo(p,iw)
         endif
 !
 ! Populate coefficient arrays
 !
-        call fill_center_coeffs(aa,bb,cc,dd,c,dz)
-        call fill_boundary_coeffs(aa,bb,cc,dd,c,dz)    
+        call fill_center_coeffs(aa,bb,cc,dd,p,dz)
+        call fill_boundary_coeffs(aa,bb,cc,dd,p,dz)    
 !
 ! Solve the system of equations
 !
@@ -123,7 +123,7 @@ program flux_feautrier
         call update_ghosts(U(:,iy,ix,iw))
         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
 !
-        absorp_coeff(:,iy,ix,iw)=c%opacity
+        absorp_coeff(:,iy,ix,iw)=p%opacity
 !
       enddo wavelength
     enddo yloop
