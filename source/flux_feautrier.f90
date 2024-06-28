@@ -25,10 +25,8 @@ program flux_feautrier
   real, dimension(nz) :: electron_pressure,hm_bf_factor
   real, dimension(nz) :: stim_factor,source_function
 
-  real, dimension(nw) :: waves_cm,waves1_cm
-  real, dimension(nw) :: waves_angstrom,waves1_angstrom
+  real, dimension(nw) :: waves_angstrom
 !
-  real :: wave_angstrom,wave1_cm
   real :: dz,z0,z1
   real :: start, finish
   real :: w0=3000,w1=5000
@@ -68,10 +66,9 @@ program flux_feautrier
   call read_density_input(inputfile)
   call read_gas_state_input(inputfile)
 !
-  call calc_wavelength(w1,w0,waves_angstrom,&
-       waves1_angstrom,waves_cm,waves1_cm)
+  call calc_wavelength(w1,w0,waves_angstrom)
 !
-  call pre_calc_opacity_quantities(waves_angstrom,waves_cm)
+  call pre_calc_opacity_quantities(waves_angstrom)
 ! 
   if (lread_athena) call read_athena_input(inputfile)
   
@@ -113,8 +110,6 @@ program flux_feautrier
 !
       wavelength: do iw=1,nw
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
-        wave1_cm = waves1_cm(iw)
-        wave_angstrom = waves_angstrom(iw)
 !    
         if (lgrey) then
           call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)

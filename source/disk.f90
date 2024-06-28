@@ -7,7 +7,7 @@ module Disk
   private
 
   public :: read_temperature_input,read_density_input
-  public :: calc_grid,calc_density,calc_temperature,calc_wavelength
+  public :: calc_grid,calc_density,calc_temperature
   
   real :: isoTemp,sigma,midTemp,floorTemp,switchTemp
   real :: rho0,rho_floor,H
@@ -60,29 +60,6 @@ contains
       enddo
 !
     endsubroutine calc_grid
-!************************************************************************************
-    subroutine calc_wavelength(w1,w0,wa,wa1,wc,wc1)
-!
-      real, dimension(nw), intent(out) :: wa,wa1,wc,wc1
-      real, intent(in) :: w1,w0
-      real :: dw
-      integer :: i
-!
-      if (nw >1 ) then
-        dw = (w1-w0)/(nw-1)
-        do i=1,nw
-          !wavelengths in angstrom
-           wa(i) = w0 + (i-1)*dw
-        enddo
-      else
-        wa=w0
-      endif
-      wa1 = 1./wa
-      wc  = wa*1d-8 !wavelengths in cm
-      wc1 = 1./wc
-      print*, 'waves_angstrom min/max', minval(wa),maxval(wa)
-!
-    endsubroutine calc_wavelength
 !************************************************************************************
    subroutine calc_temperature(T,z,lfrom_read_athena)
 !    

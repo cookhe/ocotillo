@@ -15,6 +15,7 @@ module ContinuousOpacity
   public :: grey_parameters
   public :: pre_calc_opacity_quantities
   public :: get_source_function
+  public :: calc_wavelength
 
   real :: switch_ionfraction=1e-2
   real, dimension(7) :: a_coeff
@@ -33,22 +34,46 @@ module ContinuousOpacity
   
 contains
 !************************************************************************************
-  subroutine pre_calc_opacity_quantities(waves_angstrom,waves_cm)
+  subroutine calc_wavelength(w1,w0,wa)
+!
+    real, dimension(nw), intent(out) :: wa
+    real, intent(in) :: w1,w0
+    real :: dw
+    integer :: i
+!
+    if (nw >1 ) then
+      dw = (w1-w0)/(nw-1)
+      do i=1,nw
+        !wavelengths in angstrom
+        wa(i) = w0 + (i-1)*dw
+      enddo
+    else
+      wa=w0
+    endif
+!     
+    print*, 'waves_angstrom min/max', minval(wa),maxval(wa)
+!
+  endsubroutine calc_wavelength
+!************************************************************************************
+  subroutine pre_calc_opacity_quantities(waves_angstrom)
 
-    real, dimension(nw) :: waves_angstrom,waves_cm,lgwave
+    real, dimension(nw) :: waves_angstrom,wcm,lgwave
     integer :: n,iw,i,j
 !
     damping_factor_const = h_planck*c_light_cgs*k1_cgs
     source_function_const = 2*h_planck*c_light_cgs**2
 !    
     wa = waves_angstrom
-    wcm1 = 1./waves_cm
-    w1cm5 = wcm1**5
+!    
+    wcm  = wa*1d-8 !wavelengths in cm
+    wcm1 = 1./wcm
+    nu = c_light_cgs*wcm1
 !    
     chi  = 1.2398e4/wa
     chi1 = 1./chi
-    nu = c_light_cgs*wcm1
+!
     wa3 = wa**3
+    w1cm5 = wcm1**5
     gff_factor = 0.3456 * (wa * Rangstrom)**(-one_third)
 !
     a_coeff = (/+1.99654,&
@@ -69,17 +94,17 @@ contains
          +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
          (/ size(b_coeff, 2), size(b_coeff, 1) /)))
-
+!
     do n=1,mdim
       n1_array(n)=1./n
       chi_n(n) = RydbergEnergy * (1. - 1.*n1_array(n)**2) 
       do iw=1,nw
-        call gaunt(n, waves_cm(iw), g(iw,n))
+        call gaunt(n, wcm(iw), g(iw,n))
       enddo
     enddo    
     ! excitation energy of state level m
     chi_m = RydbergEnergy * (1. - n1_array(mdim)**2)
-
+!
     lgwave=log10(wa)
     do iw=1,nw
       do i=1,3
