@@ -1,6 +1,7 @@
 module Auxiliary
 
   use Common
+  use Columns
 
   implicit none
   private
@@ -96,56 +97,57 @@ contains
 !
   endsubroutine calc_auxiliaries
 !************************************************************************************
-  subroutine fill_center_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
+  subroutine fill_center_coeffs(aa,bb,cc,dd,c,dz)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
-    real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
     real, dimension(nz) :: kappa_m,kappa_p
     real, intent(in) :: dz
     real :: zeta
     integer :: iz
+    type (column_case) :: c
   
     ! Populate opacities at point i+1/2
     do iz=1, nz-1
-      kappa_p(iz) = 0.5 * (absorp_coeff(iz+1) + absorp_coeff(iz))
+      kappa_p(iz) = 0.5 * (c%opacity(iz+1) + c%opacity(iz))
     enddo
      
     ! Populate opacities at point i-1/2
     do iz=2, nz
-      kappa_m(iz) = 0.5 * (absorp_coeff(iz) + absorp_coeff(iz-1))
+      kappa_m(iz) = 0.5 * (c%opacity(iz) + c%opacity(iz-1))
     enddo
 
     ! Populate centers of arrays 
     do iz=2, nz-1
-      aa(iz) = absorp_coeff(iz)**2 / kappa_m(iz)
-      cc(iz) = absorp_coeff(iz)**2 / kappa_p(iz)
-      zeta   = dz*dz * absorp_coeff(iz)**3 * (1 - omega(iz))
+      aa(iz) = c%opacity(iz)**2 / kappa_m(iz)
+      cc(iz) = c%opacity(iz)**2 / kappa_p(iz)
+      zeta   = dz*dz * c%opacity(iz)**3 * (1 - c%albedo(iz))
       bb(iz) = -(aa(iz) + cc(iz) + zeta)
-      dd(iz) = -source_function(iz) * zeta
+      dd(iz) = -c%source_function(iz) * zeta
     enddo
 
     if (lfirst) print*, ' Filled center coeffs'
     
   endsubroutine fill_center_coeffs
 !************************************************************************************
-  subroutine fill_boundary_coeffs(aa,bb,cc,dd,absorp_coeff,omega,source_function,dz)
+  subroutine fill_boundary_coeffs(aa,bb,cc,dd,c,dz)
     
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
-    real, dimension(nz), intent(in) :: absorp_coeff,omega,source_function
     real, intent(in) :: dz
     real :: zeta
+
+    type (column_case) :: c
   
     ! Populate boundary values
     aa(1) = 0.
-    zeta  = absorp_coeff(1) * dz**2 * (1 - omega(1)) / 4
-    bb(1) = -(1/absorp_coeff(1) + dz + zeta) * absorp_coeff(1)**2
-    cc(1) = 1/absorp_coeff(1) * absorp_coeff(1)**2
-    dd(1) = -source_function(1) * zeta * absorp_coeff(1)**2
+    zeta  = c%opacity(1) * dz**2 * (1 - c%albedo(1)) / 4
+    bb(1) = -(1/c%opacity(1) + dz + zeta) * c%opacity(1)**2
+    cc(1) = 1/c%opacity(1) * c%opacity(1)**2
+    dd(1) = -c%source_function(1) * zeta * c%opacity(1)**2
     
-    aa(nz) = 1/absorp_coeff(nz) * absorp_coeff(nz)**2
-    zeta   = absorp_coeff(nz) * dz**2 * (1 - omega(nz)) / 4
-    bb(nz) = -(1/absorp_coeff(nz) + dz + zeta) * absorp_coeff(nz)**2
+    aa(nz) = 1/c%opacity(nz) * c%opacity(nz)**2
+    zeta   = c%opacity(nz) * dz**2 * (1 - c%albedo(nz)) / 4
+    bb(nz) = -(1/c%opacity(nz) + dz + zeta) * c%opacity(nz)**2
     cc(nz) = 0.
-    dd(nz) = -source_function(nz) * zeta * absorp_coeff(nz)**2
+    dd(nz) = -c%source_function(nz) * zeta * c%opacity(nz)**2
 
     if (lfirst) print*, ' Filled boundary coeffs'
     

@@ -16,41 +16,23 @@ program flux_feautrier
   real, dimension(mz,nyloc,nxloc,nw) :: U
   real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
   real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
-  !real, dimension(nz,nw) :: V,Ip,Im
-!
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
-  real, dimension(nz) :: opacity, albedo
-  real, dimension(nz) :: source_function
-
   real, dimension(nw) :: waves_angstrom
-!
   real :: dz,z0,z1
   real :: start, finish
   real :: w0=3000,w1=5000
   real :: sigma_grey
-!
   integer :: iw,ix,iy,iprocx,iprocy
-!
   logical :: lgrey=.false.,lread_athena=.true.
   character(len=90) :: snapshot
   character(len=90) :: inputfile='./input.in'
-!
-  !integer, parameter :: ncolumns=4
-
-  !character (len=90), parameter, dimension(ncolumns) :: column_names = &
-  !(/'rho','T','rho1','T1'/)
 !
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !
 ! Start the time counter
 !
   call cpu_time(start)
-!
-  !c%T = 0.
-  !c%rho = 0.
-  !c%rho1 = 0.
-  !c%T1 = 0.
 !
 !  Read the input namelist with the user-defined parameters.
 !
@@ -120,17 +102,17 @@ program flux_feautrier
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
 !    
         if (lgrey) then
-          call grey_parameters(c,sigma_grey,source_function,opacity,albedo) !rho,T,sigma_grey,source_function,opacity,albedo)
+          call grey_parameters(c,sigma_grey) !rho,T,sigma_grey,source_function,opacity,albedo)
         else
-          source_function = get_source_function(c%T1,iw)
+          c%source_function = get_source_function(c%T1,iw)
           c%stim_factor = get_hydrogen_stimulated_emission(iw,c%theta)
-          call calc_opacity_and_albedo(c,iw,opacity,albedo)
+          call calc_opacity_and_albedo(c,iw)
         endif
 !
 ! Populate coefficient arrays
 !
-        call fill_center_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)
-        call fill_boundary_coeffs(aa,bb,cc,dd,opacity,albedo,source_function,dz)    
+        call fill_center_coeffs(aa,bb,cc,dd,c,dz)
+        call fill_boundary_coeffs(aa,bb,cc,dd,c,dz)    
 !
 ! Solve the system of equations
 !
@@ -139,7 +121,7 @@ program flux_feautrier
         call update_ghosts(U(:,iy,ix,iw))
         if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
 !
-        absorp_coeff(:,iy,ix,iw)=opacity
+        absorp_coeff(:,iy,ix,iw)=c%opacity
 !
       enddo wavelength
     enddo yloop

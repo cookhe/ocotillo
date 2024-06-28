@@ -147,26 +147,23 @@ contains
 
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
-  subroutine calc_opacity_and_albedo(c,iw,opacity,albedo)
+  subroutine calc_opacity_and_albedo(c,iw)
 
-    real, dimension(nz) :: opacity, albedo
+    real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
+    
     integer :: iw
     type (column_case) :: c
     
-    real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
-    
-    intent(out)  :: opacity, albedo
-
     kappa_H_bf  = get_kappa_H_bf(c,iw)
     kappa_Hm_bf = get_kappa_Hm_bf(c,iw)
     kappa_Hm_ff = get_kappa_Hm_ff(c,iw)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + c%e_scatter)*mp1
-    opacity = kappa_rad * c%rho
+    c%opacity = kappa_rad * c%rho
 
-    call calc_kappa_H_ff(c,kappa_rad,opacity,iw)
+    call calc_kappa_H_ff(c,kappa_rad,iw)
     
-    albedo = c%e_scatter * mp1 / kappa_rad
+    c%albedo = c%e_scatter * mp1 / kappa_rad
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
@@ -215,18 +212,18 @@ contains
     
   endfunction get_kappa_H_bf
 !************************************************************************************
-  subroutine calc_kappa_H_ff(c,kappa_rad,opacity,iw)
+  subroutine calc_kappa_H_ff(c,kappa_rad,iw)
 !
 !    """Hydrogen free-free absorption coefficient.
 !    
 !    Units cm^2 per neutral hydrogen atom.
 !    """
-    real, dimension(nz) :: kappa_rad,opacity
+    real, dimension(nz) :: kappa_rad
     real :: g_ff,energyfactor,kappa_H_ff,opacity_bremsstrahlung
     integer :: i,iw
     type (column_case) :: c
 !
-    intent(inout) :: kappa_rad,opacity
+    intent(inout) :: kappa_rad
 !    
     do i=1,nz
        if ((1-c%NHII_NHINHII(i)) .gt. switch_ionfraction) then
@@ -235,14 +232,14 @@ contains
           energyfactor = .5*log10e*c%theta1(i)*Iev1 * 10**(-c%theta(i)*Iev)
           kappa_H_ff = c%stim_factor(i) * c%ionization_factor(i) * alpha0 * wa3(iw) * g_ff * energyfactor
           kappa_rad(i) = kappa_rad(i) + kappa_H_ff * mp1 ! cm^2 / g
-          opacity(i) = opacity(i) + kappa_rad(i) * c%rho(i) ! 1/cm
+          c%opacity(i) = c%opacity(i) + kappa_rad(i) * c%rho(i) ! 1/cm
        else
           ! Use espression for fully ionized gas.
           !waves_cm = waves / 1e8 ! convert angstroms to centimeters
           !nu_Hz = c*1e8 / waves
           call bremsstrahlung_absorptionCoeff(c,i,nu(iw),1.0,opacity_bremsstrahlung)
-          opacity(i) = opacity(i) + opacity_bremsstrahlung
-          kappa_rad(i) = kappa_rad(i) + opacity(i) * c%rho1(i) ! cm^2 / g
+          c%opacity(i) = c%opacity(i) + opacity_bremsstrahlung
+          kappa_rad(i) = kappa_rad(i) + c%opacity(i) * c%rho1(i) ! cm^2 / g
        endif
     enddo
 
@@ -344,19 +341,16 @@ contains
 !
   endsubroutine gaunt
 !************************************************************************************
-  subroutine grey_parameters(c,sigma_grey,&
-       B_grey,kappa_grey,omega_grey)
+  subroutine grey_parameters(c,sigma_grey)
 
-!    real, intent(in), dimension(nz) :: rho,T
     real, intent(in) :: sigma_grey
     real, dimension(nz) :: alpha_grey
-    real, intent(out), dimension(nz) :: B_grey,kappa_grey,omega_grey
     type (column_case) :: c
     
-    B_grey = sigma_sb*c%T**4
+    c%source_function = sigma_sb*c%T**4
     alpha_grey = 3.68e22 * c%T**(-3.5) *  c%rho
-    kappa_grey = (alpha_grey+sigma_grey)*c%rho
-    omega_grey = sigma_grey / (alpha_grey + sigma_grey)
+    c%opacity = (alpha_grey+sigma_grey)*c%rho
+    c%albedo  = sigma_grey / (alpha_grey + sigma_grey)
 
   endsubroutine grey_parameters
 !************************************************************************************
