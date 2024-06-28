@@ -2,6 +2,7 @@
 module Disk
 
   use Common
+  use Columns
 
   implicit none
   private
@@ -110,11 +111,12 @@ contains
 !************************************************************************************
    subroutine calc_density(rho,z)
 !
-    real, dimension(nz), intent(inout) :: rho
-    real, dimension(mz), intent(in) :: z
-    integer :: i
+     real, dimension(nz), intent(inout) :: rho
+     !type(column_case) :: c
+     real, dimension(mz), intent(in) :: z
+     integer :: i
 !
-    rho = rho0*exp(-.5*z(n1:n2)**2/H**2)
+     rho = rho0*exp(-.5*z(n1:n2)**2/H**2)
 !
 ! Implement a density floor
 !

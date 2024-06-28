@@ -2,6 +2,7 @@
 module GasState
 
   use Common
+  use Columns
   
   implicit none
   private
@@ -25,23 +26,22 @@ contains
 
   endsubroutine read_gas_state_input
 !******************************************
-  subroutine calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
-  real, dimension(nz), intent(in) :: rho1,T,T1
-  real, dimension(nz), intent(out) :: NHII_NHINHII
-  real, dimension(nz) :: constants,niine_ni,C,exparg
+  subroutine calc_hydrogen_ion_frac(c)
+  real, dimension(nz) :: constants,niine_ni,c_ion,exparg
   integer :: i
+  type (column_case) :: c
 !
 ! calculate the Saha equation (relative fraction of adjacent ions)
 !
   !constants = (sqrt(2*pi*me*k_cgs)*h1_planck)**3   * T**1.5
   !(sqrt(2*pi*me*k_cgs)*h1_planck)**3 = 2414683039571967.0
-  constants=2414683039571967. * T**1.5
-  exparg = T1 * hydrogen_ionization_eV*k1_eV
+  constants=2414683039571967. * c%T**1.5
+  exparg = c%T1 * hydrogen_ionization_eV*k1_eV
   niine_ni =  constants * exp(-exparg)
     
-  C = mp * rho1 * niine_ni
+  c_ion = mp * c%rho1 * niine_ni
 
-  NHII_NHINHII = .5*(sqrt(C**2 + 4*C) - C)
+  c%NHII_NHINHII = .5*(sqrt(c_ion**2 + 4*c_ion) - c_ion)
 !
 ! Limits due to machine precision mean 4C becomes unresolved next to C**2,
 ! so manually set the ionization fraction to 1 for temperatures above 20000.
@@ -49,41 +49,44 @@ contains
 ! ~2e-9 g cm^-3. Would not be appropriate for higher densities.
 !
   do i=1,nz
-    if (T(i) > fully_ionized_T) then 
-      NHII_NHINHII(i)=1.
+    if (c%T(i) > fully_ionized_T) then 
+      c%NHII_NHINHII(i)=1.
     endif
   enddo
 !
 endsubroutine calc_hydrogen_ion_frac
 !******************************************
-subroutine solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_density,&
-     nHI,nHII,ne,ionization_factor)
-  real, dimension(nz), intent(in) :: rho,rho1,NHII_NHINHII
-  real, dimension(nz), intent(out) :: number_density,inv_number_density,nHI,nHII,ne,ionization_factor
+subroutine solve_gas_state(c)!rho,rho1,NHII_NHINHII,number_density,inv_number_density,&
+!     nHI,nHII,ne,ionization_factor)
+  !real, dimension(nz), intent(in) :: rho,rho1,NHII_NHINHII
+  !real, dimension(nz), intent(out) :: number_density,inv_number_density,nHI,nHII,ne,ionization_factor
   integer :: i
-
-  number_density = rho*mp1
-  inv_number_density = rho1*mp
-  nHII = NHII_NHINHII * number_density
-  nHI = number_density - nHII
-  ne = nHII
+  type (column_case) :: c
+  
+  c%number_density = c%rho*mp1
+  c%inv_number_density = c%rho1*mp
+  c%nHII = c%NHII_NHINHII * c%number_density
+  c%nHI = c%number_density - c%nHII
+  c%ne = c%nHII
   
   do i=1,nz
-    if (nHI(i) /= 0) then
-      ionization_factor(i) = nHI(i)/(nHI(i) + nHII(i))
+    if (c%nHI(i) /= 0) then
+      c%ionization_factor(i) = c%nHI(i)/(c%nHI(i) + c%nHII(i))
     else ! set to zero.
-      ionization_factor(i) = 0.
+      c%ionization_factor(i) = 0.
     endif
   enddo
 
 endsubroutine solve_gas_state
 !******************************************
-function get_electron_pressure(ne, T) result(electron_pressure)
+function get_electron_pressure(c) result(electron_pressure)
 ! function  for electron pressure
-  real, intent(in), dimension(nz) :: ne, T
+  !real, intent(in), dimension(nz) :: ne, T
   real, dimension(nz) :: electron_pressure
 
-  electron_pressure = ne * k_cgs * T
+  type (column_case) :: c
+  
+  electron_pressure = c%ne * k_cgs * c%T
   
 endfunction get_electron_pressure
 !******************************************

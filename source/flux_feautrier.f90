@@ -2,6 +2,7 @@ program flux_feautrier
 
   use Auxiliary
   use Common
+  use Columns
   use Disk
   use GasState
   use ContinuousOpacity
@@ -10,6 +11,8 @@ program flux_feautrier
   
   implicit none
 
+  type (column_case) :: c
+  
   real, dimension(mz,nyloc,nxloc,nw) :: U
   real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
   real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
@@ -17,13 +20,8 @@ program flux_feautrier
 !
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
-  real, dimension(nz) :: rho,rho1,T,T1
   real, dimension(nz) :: opacity, albedo
-  real, dimension(nz) :: NHII_NHINHII,number_density,inv_number_density
-  real, dimension(nz) :: nHII,nHI,ne,ionization_factor
-  real, dimension(nz) :: e_scatter,theta,theta1,lgtheta,lgtheta2
-  real, dimension(nz) :: electron_pressure,hm_bf_factor
-  real, dimension(nz) :: stim_factor,source_function
+  real, dimension(nz) :: source_function
 
   real, dimension(nw) :: waves_angstrom
 !
@@ -38,11 +36,21 @@ program flux_feautrier
   character(len=90) :: snapshot
   character(len=90) :: inputfile='./input.in'
 !
+  !integer, parameter :: ncolumns=4
+
+  !character (len=90), parameter, dimension(ncolumns) :: column_names = &
+  !(/'rho','T','rho1','T1'/)
+!
   namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !
 ! Start the time counter
 !
   call cpu_time(start)
+!
+  !c%T = 0.
+  !c%rho = 0.
+  !c%rho1 = 0.
+  !c%T1 = 0.
 !
 !  Read the input namelist with the user-defined parameters.
 !
@@ -81,8 +89,8 @@ program flux_feautrier
     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
     call calc_grid(z1,z0,z,dz)
-    call calc_density(rho,z)
-    call calc_temperature(T,z)
+    call calc_density(c%rho,z)
+    call calc_temperature(c%T,z)
   endif
 !
 !***********************************************************************
@@ -91,20 +99,20 @@ program flux_feautrier
   xloop: do ix=1,nxloc
     yloop: do iy=1,nyloc
       if (lread_athena) then
-        rho = rho3d(1:nz,iy,ix)
-        T   = temp3d(1:nz,iy,ix)
+        c%rho =  rho3d(1:nz,iy,ix)
+        c%T   = temp3d(1:nz,iy,ix)
       endif
-      rho1=1./rho
-      T1=1./T
-      call calc_hydrogen_ion_frac(rho1,T,T1,NHII_NHINHII)
-      call solve_gas_state(rho,rho1,NHII_NHINHII,number_density,inv_number_density,nHI,nHII,ne,ionization_factor)
-      electron_pressure = get_electron_pressure(ne,T)
-      e_scatter         = get_electron_thomson_scattering(inv_number_density,nHII)
-      theta             = 5040.* T1
-      theta1            = 1./theta
-      lgtheta           = log10(theta)
-      lgtheta2          = lgtheta**2
-      hm_bf_factor      = get_hydrogen_ion_bound_free(electron_pressure,theta)
+      c%rho1=1./c%rho
+      c%T1=1./c%T
+      call calc_hydrogen_ion_frac(c)
+      call solve_gas_state(c)!rho,rho1,NHII_NHINHII,number_density,inv_number_density,nHI,nHII,ne,ionization_factor)
+      c%electron_pressure = get_electron_pressure(c) !ne,T)
+      c%e_scatter         = get_electron_thomson_scattering(c)!inv_number_density,nHII)
+      c%theta             = 5040.* c%T1
+      c%theta1            = 1./c%theta
+      c%lgtheta           = log10(c%theta)
+      c%lgtheta2          = c%lgtheta**2
+      c%hm_bf_factor      = get_hydrogen_ion_bound_free(c) !electron_pressure,theta)
 !
 ! Loop over wavelengths
 !
@@ -112,13 +120,11 @@ program flux_feautrier
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
 !    
         if (lgrey) then
-          call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
+          call grey_parameters(c,sigma_grey,source_function,opacity,albedo) !rho,T,sigma_grey,source_function,opacity,albedo)
         else
-          source_function = get_source_function(T1,iw)
-          stim_factor = get_hydrogen_stimulated_emission(iw,theta)
-          call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-               T,T1,theta,theta1,lgtheta,lgtheta2,hm_bf_factor,stim_factor,&
-               ionization_factor,opacity,albedo,iw) ! output: omega, and absorp_coeff
+          source_function = get_source_function(c%T1,iw)
+          c%stim_factor = get_hydrogen_stimulated_emission(iw,c%theta)
+          call calc_opacity_and_albedo(c,iw,opacity,albedo)
         endif
 !
 ! Populate coefficient arrays

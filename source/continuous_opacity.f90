@@ -4,6 +4,7 @@
 module ContinuousOpacity
 
   use Common
+  use Columns
 
   implicit none
   private
@@ -117,21 +118,22 @@ contains
 !
   endsubroutine pre_calc_opacity_quantities
 !************************************************************************************
-  function get_electron_thomson_scattering(inv_number_density, nHII) result(e_scatter)
-    real, intent(in), dimension(nz) :: inv_number_density, nHII
+  function get_electron_thomson_scattering(c) result(e_scatter)
+
     real, dimension(nz) ::  e_scatter
     real :: alpha_e = 0.6648e-24 ! coefficient
-
-    e_scatter = alpha_e * nHII * inv_number_density
+    type (column_case) :: c
+    
+    e_scatter = alpha_e * c%nHII * c%inv_number_density
 
   endfunction get_electron_thomson_scattering
 !************************************************************************************
-  function get_hydrogen_ion_bound_free(electron_pressure,theta) result(hm_bf_factor)
+  function get_hydrogen_ion_bound_free(c) result(hm_bf_factor)
 
-    real, intent(in), dimension(nz) :: electron_pressure,theta
     real, dimension(nz) :: hm_bf_factor
+    type (column_case) :: c
     
-    hm_bf_factor=4.158e-10 * electron_pressure * theta**2.5 * 10**(0.754 * theta)
+    hm_bf_factor=4.158e-10 * c%electron_pressure * c%theta**2.5 * 10**(0.754 * c%theta)
 
   endfunction get_hydrogen_ion_bound_free
 !************************************************************************************
@@ -145,37 +147,30 @@ contains
 
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
-  subroutine calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-       temp,temp1,theta,theta1,lgtheta,lgtheta2,hm_bf_factor,&
-       stim_factor,ionization_factor,opacity,albedo,iw)
+  subroutine calc_opacity_and_albedo(c,iw,opacity,albedo)
 
-    real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, lgtheta, lgtheta2
-    real, dimension(nz) :: ne, NHII_NHINHII,nHI,nHII
-    real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
     integer :: iw
-
+    type (column_case) :: c
+    
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
     
-    intent(in)   :: e_scatter,rho,rho1,ne,temp,temp1,theta,theta1
-    intent(in)   :: hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
-    kappa_H_bf  = get_kappa_H_bf(temp, temp1, stim_factor * ionization_factor, iw)
-    kappa_Hm_bf = get_kappa_Hm_bf(hm_bf_factor * stim_factor * ionization_factor, iw)
-    kappa_Hm_ff = get_kappa_Hm_ff(ne,temp,lgtheta,lgtheta2,ionization_factor,iw)
+    kappa_H_bf  = get_kappa_H_bf(c,iw)
+    kappa_Hm_bf = get_kappa_Hm_bf(c,iw)
+    kappa_Hm_ff = get_kappa_Hm_ff(c,iw)
 
-    kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
-    opacity = kappa_rad * rho
+    kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + c%e_scatter)*mp1
+    opacity = kappa_rad * c%rho
 
-    call calc_kappa_H_ff(temp, temp1, theta, theta1, stim_factor * ionization_factor,&
-         rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity,iw)
-
-    albedo = e_scatter * mp1 / kappa_rad
+    call calc_kappa_H_ff(c,kappa_rad,opacity,iw)
+    
+    albedo = c%e_scatter * mp1 / kappa_rad
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
-  function get_kappa_H_bf(temp, temp1, factor, iw) result(kappa_H_bf)
+  function get_kappa_H_bf(c, iw) result(kappa_H_bf)
 !    
 !    """Cross section of bound-free hydrogen. Sums over the first 
 !    1 to m-1 excitation states, where m is the principal quantum
@@ -199,86 +194,82 @@ contains
 !        neutral hydrogen atom
 !    """
 !    
-    real, dimension(nz) :: sm, temp, temp1, ktemp, ktemp1, factor, C, kappa_H_bf
+    real, dimension(nz) :: sm, ktemp, ktemp1, unsold, kappa_H_bf
     integer :: n, iw
+    type (column_case) :: c
 !
-    intent(in) :: temp, temp1, factor
-!
+
     ! sum for the first m-1 excitation states
     sm = 0.
-    ktemp = k_cgs*temp
-    ktemp1 = k1_cgs*temp1
+    ktemp = k_cgs*c%T
+    ktemp1 = k1_cgs*c%T1
     
     do n=1,mdim
       sm = sm + g(iw,n)*n1_array(n)**3 * exp(-chi_n(n)*ktemp1)
     enddo
     
     ! Unsold approximation integral
-    C = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
+    unsold = .5*ktemp*RydbergEnergy1 * ( exp(-chi_m*ktemp1) - exp(-RydbergEnergy*ktemp1) )
 
-    kappa_H_bf = AHbf * factor * wa3(iw) * (C + sm)
+    kappa_H_bf = AHbf * c%stim_factor * c%ionization_factor * wa3(iw) * (unsold + sm)
     
   endfunction get_kappa_H_bf
 !************************************************************************************
-  subroutine calc_kappa_H_ff(temp, temp1, theta, theta1, factor,&
-       rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity,iw)
+  subroutine calc_kappa_H_ff(c,kappa_rad,opacity,iw)
 !
 !    """Hydrogen free-free absorption coefficient.
 !    
 !    Units cm^2 per neutral hydrogen atom.
 !    """
     real, dimension(nz) :: kappa_rad,opacity
-    real, dimension(nz) :: temp,temp1,theta,theta1,factor,rho,rho1,NHII_NHINHII,ne,nHI,nHII
     real :: g_ff,energyfactor,kappa_H_ff,opacity_bremsstrahlung
     integer :: i,iw
+    type (column_case) :: c
 !
-    intent(in) :: temp, temp1, theta, theta1, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII,iw
     intent(inout) :: kappa_rad,opacity
 !    
     do i=1,nz
-       if ((1-NHII_NHINHII(i)) .gt. switch_ionfraction) then
+       if ((1-c%NHII_NHINHII(i)) .gt. switch_ionfraction) then
           ! Use Gray 2022 function that depends on hydrogen's ionization state.
-          g_ff = 1 + gff_factor(iw) * (theta1(i)*log10e*chi1(iw) + 0.5)
-          energyfactor = .5*log10e*theta1(i)*Iev1 * 10**(-theta(i)*Iev)
-          kappa_H_ff = factor(i) * alpha0 * wa3(iw) * g_ff * energyfactor
+          g_ff = 1 + gff_factor(iw) * (c%theta1(i)*log10e*chi1(iw) + 0.5)
+          energyfactor = .5*log10e*c%theta1(i)*Iev1 * 10**(-c%theta(i)*Iev)
+          kappa_H_ff = c%stim_factor(i) * c%ionization_factor(i) * alpha0 * wa3(iw) * g_ff * energyfactor
           kappa_rad(i) = kappa_rad(i) + kappa_H_ff * mp1 ! cm^2 / g
-          opacity(i) = opacity(i) + kappa_rad(i) * rho(i) ! 1/cm
+          opacity(i) = opacity(i) + kappa_rad(i) * c%rho(i) ! 1/cm
        else
           ! Use espression for fully ionized gas.
           !waves_cm = waves / 1e8 ! convert angstroms to centimeters
           !nu_Hz = c*1e8 / waves
-          call bremsstrahlung_absorptionCoeff(nu(iw),temp(i),temp1(i),&
-               ne(i),nHI(i)+nHII(i),1.0,opacity_bremsstrahlung)
+          call bremsstrahlung_absorptionCoeff(c,i,nu(iw),1.0,opacity_bremsstrahlung)
           opacity(i) = opacity(i) + opacity_bremsstrahlung
-          kappa_rad(i) = kappa_rad(i) + opacity(i) * rho1(i) ! cm^2 / g
+          kappa_rad(i) = kappa_rad(i) + opacity(i) * c%rho1(i) ! cm^2 / g
        endif
     enddo
 
   endsubroutine calc_kappa_H_ff
 !************************************************************************************
-  subroutine bremsstrahlung_absorptionCoeff(frequency, temperature, temperature1, &
-       nelectrons, nprotons, zprotons,kappaRho)
+  subroutine bremsstrahlung_absorptionCoeff(c,i,frequency,zprotons,kappaRho)
 
-    real :: gaunt
-    real :: frequency, temperature, temperature1, nelectrons, nprotons, zprotons
-    real :: ln_physQuant,kappaRho
+    real :: gaunt,zprotons,ln_physQuant,kappaRho,frequency
+    integer :: i
+    type (column_case) :: c
 
-    intent(in) :: frequency, temperature, temperature1, nelectrons, nprotons, zprotons
+    intent(in) :: zprotons
     intent(out) :: kappaRho
     
-    gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency*1e-9 * (temperature*1e-4)**(-1.5))) + exp1)
+    gaunt = log(exp(5.960 - sqrt3*pi1 * log(frequency*1e-9 * (c%T(i)*1e-4)**(-1.5))) + exp1)
 
-    ln_physQuant = log(nelectrons*nprotons) + &
+    ln_physQuant = log(c%ne(i)*(c%nHI(i)+c%nHII(i))) + &  !nelectrons*nprotons
          2*log(zprotons) - &
-         0.5*log(temperature) - &
+         0.5*log(c%T(i)) - &
          3*log(frequency) + &
-         log((1 - exp(-h_planck*frequency*k1_cgs*temperature1)))
+         log((1 - exp(-h_planck*frequency*k1_cgs*c%T1(i))))
 
     kappaRho = bremsstrahlung_constant * exp(ln_physQuant) * gaunt
 
   endsubroutine bremsstrahlung_absorptionCoeff
 !************************************************************************************
-  function get_kappa_Hm_bf(factor,iw) result(kappa_Hm_bf)
+  function get_kappa_Hm_bf(c,iw) result(kappa_Hm_bf)
 !    """H- ion bound-free continuum opacity.
 !    Calculates the sum of the fit function
 !    
@@ -289,33 +280,33 @@ contains
 !                    must be contained in an array object.
 !    
 !    """
-    real, dimension(nz) :: factor,kappa_Hm_bf
+    real, dimension(nz) :: kappa_Hm_bf
     integer :: iw
+    type (column_case) :: c
 
     ! fit coefficients
     if (wa(iw) .lt. 16000) then
-       kappa_Hm_bf = factor*s_coeff(iw)
+       kappa_Hm_bf = c%hm_bf_factor * c%stim_factor * c%ionization_factor * s_coeff(iw)
     else
        kappa_Hm_bf=0
     endif
 !
   endfunction  get_kappa_Hm_bf
 !************************************************************************************
-  function get_kappa_Hm_ff(ne, temp, lgtheta, lgtheta2, factor,iw) result(kappa_Hm_ff)
+  function get_kappa_Hm_ff(c,iw) result(kappa_Hm_ff)
 !
 !    """H- ion free-free interaction cross section per HI per unit                                 
 !    electron pressure.                                                                            
 !    """
-    real, dimension(nz) :: ne,temp,kappa_Hm_ff,lgtheta, lgtheta2, factor,flam
+    real, dimension(nz) :: kappa_Hm_ff,flam
     integer :: iw
+    type (column_case) :: c
 !    
-    intent(in) :: ne,temp, lgtheta, lgtheta2, iw
-!
     ! fit coefficients
     
-    flam = f_coeff(iw,1) + f_coeff(iw,2)*lgtheta + f_coeff(iw,3)*lgtheta2 - 26
+    flam = f_coeff(iw,1) + f_coeff(iw,2)*c%lgtheta + f_coeff(iw,3)*c%lgtheta2 - 26
 
-    kappa_Hm_ff = factor * ne * k_cgs * temp * 10**(flam)
+    kappa_Hm_ff = c%ionization_factor * c%ne * k_cgs * c%T * 10**(flam)
 
   endfunction get_kappa_Hm_ff
 !************************************************************************************
@@ -353,17 +344,18 @@ contains
 !
   endsubroutine gaunt
 !************************************************************************************
-  subroutine grey_parameters(rho,T,sigma_grey,&
+  subroutine grey_parameters(c,sigma_grey,&
        B_grey,kappa_grey,omega_grey)
 
-    real, intent(in), dimension(nz) :: rho,T
+!    real, intent(in), dimension(nz) :: rho,T
     real, intent(in) :: sigma_grey
     real, dimension(nz) :: alpha_grey
     real, intent(out), dimension(nz) :: B_grey,kappa_grey,omega_grey
+    type (column_case) :: c
     
-    B_grey = sigma_sb*T**4
-    alpha_grey = 3.68e22 * T**(-3.5) *  rho
-    kappa_grey = (alpha_grey+sigma_grey)*rho
+    B_grey = sigma_sb*c%T**4
+    alpha_grey = 3.68e22 * c%T**(-3.5) *  c%rho
+    kappa_grey = (alpha_grey+sigma_grey)*c%rho
     omega_grey = sigma_grey / (alpha_grey + sigma_grey)
 
   endsubroutine grey_parameters
