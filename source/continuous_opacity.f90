@@ -26,7 +26,7 @@ module ContinuousOpacity
   real, dimension(mdim) :: n1_array,chi_n
   real, dimension(nw,mdim) :: g
   real :: chi_m
-  real, dimension(nw) :: chi,chi1,nu,wa3
+  real, dimension(nw) :: chi,chi1,nu,wa,wa3,gff_factor
   real, dimension(nw) :: s_coeff
   
 contains
@@ -36,10 +36,12 @@ contains
     real, dimension(nw) :: waves_angstrom,waves_cm,lgwave
     integer :: n,iw,i,j
 !
-    chi  = 1.2398e4/waves_angstrom
+    wa = waves_angstrom
+    chi  = 1.2398e4/wa
     chi1 = 1./chi
     nu = c_light_cgs/waves_cm
-    wa3 = waves_angstrom**3
+    wa3 = wa**3
+    gff_factor = 0.3456 * (waves_angstrom * Rangstrom)**(-one_third)
 !
     a_coeff = (/+1.99654,&
          -1.18267e-6,&
@@ -111,30 +113,29 @@ contains
   endfunction get_hydrogen_stimulated_emission
 !************************************************************************************
   subroutine calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-       temp,temp1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,hm_bf_factor,&
+       temp,temp1,theta,theta1,lgtheta,lgtheta2,hm_bf_factor,&
        stim_factor,ionization_factor,opacity,albedo,iw)
 
     real, dimension(nz) :: e_scatter,rho, rho1,temp, temp1, theta, theta1, lgtheta, lgtheta2
     real, dimension(nz) :: ne, NHII_NHINHII,nHI,nHII
     real, dimension(nz) :: hm_bf_factor, stim_factor, ionization_factor
     real, dimension(nz) :: opacity, albedo
-    real :: wave_angstrom
     integer :: iw
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
     
     intent(in)   :: e_scatter,rho,rho1,ne,temp,temp1,theta,theta1
-    intent(in)   :: wave_angstrom,hm_bf_factor,stim_factor,ionization_factor
+    intent(in)   :: hm_bf_factor,stim_factor,ionization_factor
     intent(out)  :: opacity, albedo
 
     kappa_H_bf  = get_kappa_H_bf(temp, temp1, stim_factor * ionization_factor, iw)
-    kappa_Hm_bf = get_kappa_Hm_bf(wave_angstrom, hm_bf_factor * stim_factor * ionization_factor, iw)
+    kappa_Hm_bf = get_kappa_Hm_bf(hm_bf_factor * stim_factor * ionization_factor, iw)
     kappa_Hm_ff = get_kappa_Hm_ff(ne,temp,lgtheta,lgtheta2,ionization_factor,iw)
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + e_scatter)*mp1
     opacity = kappa_rad * rho
 
-    call calc_kappa_H_ff(wave_angstrom, temp, temp1, theta, theta1, stim_factor * ionization_factor,&
+    call calc_kappa_H_ff(temp, temp1, theta, theta1, stim_factor * ionization_factor,&
          rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity,iw)
 
     albedo = e_scatter * mp1 / kappa_rad
@@ -186,7 +187,7 @@ contains
     
   endfunction get_kappa_H_bf
 !************************************************************************************
-  subroutine calc_kappa_H_ff(waves, temp, temp1, theta, theta1, factor,&
+  subroutine calc_kappa_H_ff(temp, temp1, theta, theta1, factor,&
        rho,rho1,NHII_NHINHII,ne,nHI,nHII,kappa_rad,opacity,iw)
 !
 !    """Hydrogen free-free absorption coefficient.
@@ -196,16 +197,15 @@ contains
     real, dimension(nz) :: kappa_rad,opacity
     real, dimension(nz) :: temp,temp1,theta,theta1,factor,rho,rho1,NHII_NHINHII,ne,nHI,nHII
     real :: g_ff,energyfactor,kappa_H_ff,opacity_bremsstrahlung
-    real :: waves
     integer :: i,iw
 !
-    intent(in) :: waves,temp, temp1, theta, theta1, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII,iw
+    intent(in) :: temp, temp1, theta, theta1, factor, rho,rho1,NHII_NHINHII,ne,nHI,nHII,iw
     intent(inout) :: kappa_rad,opacity
 !    
     do i=1,nz
        if ((1-NHII_NHINHII(i)) .gt. switch_ionfraction) then
           ! Use Gray 2022 function that depends on hydrogen's ionization state.
-          g_ff = 1 + 0.3456 * (waves * Rangstrom)**(-one_third) * (theta1(i)*log10e*chi1(iw) + 0.5)
+          g_ff = 1 + gff_factor(iw) * (theta1(i)*log10e*chi1(iw) + 0.5)
           energyfactor = .5*log10e*theta1(i)*Iev1 * 10**(-theta(i)*Iev)
           kappa_H_ff = factor(i) * alpha0 * wa3(iw) * g_ff * energyfactor
           kappa_rad(i) = kappa_rad(i) + kappa_H_ff * mp1 ! cm^2 / g
@@ -245,7 +245,7 @@ contains
 
   endsubroutine bremsstrahlung_absorptionCoeff
 !************************************************************************************
-  function get_kappa_Hm_bf(waves,factor,iw) result(kappa_Hm_bf)
+  function get_kappa_Hm_bf(factor,iw) result(kappa_Hm_bf)
 !    """H- ion bound-free continuum opacity.
 !    Calculates the sum of the fit function
 !    
@@ -257,11 +257,10 @@ contains
 !    
 !    """
     real, dimension(nz) :: factor,kappa_Hm_bf
-    real :: waves
     integer :: iw
 
     ! fit coefficients
-    if (waves .lt. 16000) then
+    if (wa(iw) .lt. 16000) then
        kappa_Hm_bf = factor*s_coeff(iw)
     else
        kappa_Hm_bf=0

@@ -28,7 +28,7 @@ program flux_feautrier
   real, dimension(nw) :: waves_cm,waves1_cm
   real, dimension(nw) :: waves_angstrom,waves1_angstrom
 !
-  real :: wave_cm,wave_angstrom,wave1_cm,wave1_angstrom
+  real :: wave_angstrom,wave1_cm
   real :: dz,z0,z1
   real :: start, finish
   real :: w0=3000,w1=5000
@@ -116,11 +116,9 @@ program flux_feautrier
 !
       wavelength: do iw=1,nw
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
-        wave_cm = waves_cm(iw)
         wave1_cm = waves1_cm(iw)
         if (lfirst) print*, 'waves_cm min/max',minval(waves_cm),maxval(waves_cm)
         wave_angstrom = waves_angstrom(iw)
-        wave1_angstrom = waves1_angstrom(iw)
 !    
         if (lgrey) then
           call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
@@ -128,7 +126,7 @@ program flux_feautrier
           source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
           stim_factor = get_hydrogen_stimulated_emission(iw,theta)
           call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
-               T,T1,theta,theta1,lgtheta,lgtheta2,wave_angstrom,hm_bf_factor,stim_factor,&
+               T,T1,theta,theta1,lgtheta,lgtheta2,hm_bf_factor,stim_factor,&
                ionization_factor,opacity,albedo,iw) ! output: omega, and absorp_coeff
         endif
 !
