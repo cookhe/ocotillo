@@ -69,13 +69,13 @@ contains
       integer :: i
 !
       if (nw >1 ) then
-         dw = (w1-w0)/(nw-1)
-         do i=1,nw
-            !wavelengths in angstrom 
-            wa(i) = w0 + (i-1)*dw
-         enddo
+        dw = (w1-w0)/(nw-1)
+        do i=1,nw
+          !wavelengths in angstrom
+           wa(i) = w0 + (i-1)*dw
+        enddo
       else
-         wa=w0
+        wa=w0
       endif
       wa1 = 1./wa
       wc  = wa*1d-8 !wavelengths in cm
