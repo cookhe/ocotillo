@@ -21,6 +21,7 @@ program flux_feautrier
   real, dimension(nw) :: waves_angstrom
   real :: dz,z0,z1
   real :: start, finish
+  real :: start_loop, finish_loop  
   real :: w0=3000,w1=5000
   real :: sigma_grey
   integer :: iw,ix,iy,iprocx,iprocy
@@ -61,7 +62,8 @@ program flux_feautrier
   call pre_calc_opacity_quantities(waves_angstrom)
 ! 
   if (lread_athena) call read_athena_input(inputfile)
-  
+!
+  call cpu_time(start_loop)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! loop through processors  
   do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
@@ -76,7 +78,8 @@ program flux_feautrier
   endif
 !
 !***********************************************************************
-!xy-dependent starts here
+  !xy-dependent starts here
+  call cpu_time(start_loop)
 !***********************************************************************
   xloop: do ix=1,nxloc
     yloop: do iy=1,nyloc
@@ -127,6 +130,8 @@ program flux_feautrier
     enddo yloop
   enddo xloop
 !
+  call cpu_time(finish_loop)
+!
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
   !call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
@@ -144,9 +149,15 @@ program flux_feautrier
 ! Finish the time counter and print the wall time
 !
   call cpu_time(finish)
+!
+  print*,''
   print*,"Wall time = ",finish-start," seconds."
   print*,"Execution time =",(finish-start)/(nz*ny*nx*nw)*1e6,&
+       " micro-seconds per frequency point per mesh point."
+  print*,''
+  print*,"Loop time = ",finish_loop-start_loop," seconds."
+  print*,"Loop execution time =",(finish_loop-start_loop)/(nz*ny*nx*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
-!
+  
 endprogram flux_feautrier
 !***********************************************************************
