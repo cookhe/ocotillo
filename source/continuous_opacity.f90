@@ -14,6 +14,7 @@ module ContinuousOpacity
   public :: calc_opacity_and_albedo
   public :: grey_parameters
   public :: pre_calc_opacity_quantities
+  public :: get_source_function
 
   real :: switch_ionfraction=1e-2
   real, dimension(7) :: a_coeff
@@ -26,8 +27,9 @@ module ContinuousOpacity
   real, dimension(mdim) :: n1_array,chi_n
   real, dimension(nw,mdim) :: g
   real :: chi_m
-  real, dimension(nw) :: chi,chi1,nu,wa,wa3,gff_factor
+  real, dimension(nw) :: chi,chi1,nu,wa,wa3,gff_factor,wcm1,w1cm5
   real, dimension(nw) :: s_coeff
+  real :: damping_factor_const,source_function_const
   
 contains
 !************************************************************************************
@@ -36,12 +38,18 @@ contains
     real, dimension(nw) :: waves_angstrom,waves_cm,lgwave
     integer :: n,iw,i,j
 !
+    damping_factor_const = h_planck*c_light_cgs*k1_cgs
+    source_function_const = 2*h_planck*c_light_cgs**2
+!    
     wa = waves_angstrom
+    wcm1 = 1./waves_cm
+    w1cm5 = wcm1**5
+!    
     chi  = 1.2398e4/wa
     chi1 = 1./chi
-    nu = c_light_cgs/waves_cm
+    nu = c_light_cgs*wcm1
     wa3 = wa**3
-    gff_factor = 0.3456 * (waves_angstrom * Rangstrom)**(-one_third)
+    gff_factor = 0.3456 * (wa * Rangstrom)**(-one_third)
 !
     a_coeff = (/+1.99654,&
          -1.18267e-6,&
@@ -53,7 +61,7 @@ contains
     ! loop through each wavelength and perform the summation
     s_coeff=0
     do i=1,7
-      s_coeff = s_coeff + 1e-17*a_coeff(i)*waves_angstrom**(i-1)
+      s_coeff = s_coeff + 1e-17*a_coeff(i)*wa**(i-1)
     enddo
 !
     b_coeff = transpose(reshape(                                   &
@@ -72,7 +80,7 @@ contains
     ! excitation energy of state level m
     chi_m = RydbergEnergy * (1. - n1_array(mdim)**2)
 
-    lgwave=log10(waves_angstrom)
+    lgwave=log10(wa)
     do iw=1,nw
       do i=1,3
         f_coeff(iw,i)=0.
@@ -334,5 +342,24 @@ contains
     omega_grey = sigma_grey / (alpha_grey + sigma_grey)
 
   endsubroutine grey_parameters
+!************************************************************************************
+  function get_source_function(T1,iw) result(source_function)
+
+    integer :: i,iw
+    real, dimension(nz) :: T1,damping_factor
+    real, dimension(nz):: source_function
+
+    !damping_factor_const = h_planck*c_light_cgs*k1_cgs
+    damping_factor = damping_factor_const*T1*wcm1(iw)
+    do i=1,nz
+      if (damping_factor(i) > log_overflow_limit) then
+        damping_factor(i) = log_overflow_limit
+      endif
+    enddo
+    
+    !source_function_const = 2*h_planck*c_light_cgs**2
+    source_function = source_function_const*w1cm5(iw) * 1/(exp(damping_factor)-1)
+!    
+  endfunction get_source_function
 !************************************************************************************
 endmodule ContinuousOpacity

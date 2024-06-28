@@ -35,7 +35,6 @@ program flux_feautrier
   real :: sigma_grey
 !
   integer :: iw,ix,iy,iprocx,iprocy
-  integer :: log_overflow_limit
 !
   logical :: lgrey=.false.,lread_athena=.true.
   character(len=90) :: snapshot
@@ -62,8 +61,6 @@ program flux_feautrier
     print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
     stop
   endif
-!
-  log_overflow_limit = int(floor(log10(float_info_max)))
 !
 ! Calculate the grid variables
 !
@@ -117,13 +114,12 @@ program flux_feautrier
       wavelength: do iw=1,nw
         lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
         wave1_cm = waves1_cm(iw)
-        if (lfirst) print*, 'waves_cm min/max',minval(waves_cm),maxval(waves_cm)
         wave_angstrom = waves_angstrom(iw)
 !    
         if (lgrey) then
           call grey_parameters(rho,T,sigma_grey,source_function,opacity,albedo)
         else
-          source_function = get_source_function(wave1_cm,T1,log_overflow_limit)
+          source_function = get_source_function(T1,iw)
           stim_factor = get_hydrogen_stimulated_emission(iw,theta)
           call calc_opacity_and_albedo(e_scatter,rho,rho1,ne,NHII_NHINHII,nHI,nHII,&
                T,T1,theta,theta1,lgtheta,lgtheta2,hm_bf_factor,stim_factor,&

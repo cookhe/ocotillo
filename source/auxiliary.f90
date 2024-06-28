@@ -8,7 +8,6 @@ module Auxiliary
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries
   public :: fill_center_coeffs,fill_boundary_coeffs
-  public :: get_source_function
 
 contains
 !************************************************************************************
@@ -152,22 +151,4 @@ contains
     
   endsubroutine fill_boundary_coeffs
 !************************************************************************************
-  function get_source_function(wave1_cm,T1,log_overflow_limit) result(source_function)
-
-    integer :: i,log_overflow_limit
-    real, intent(in) :: wave1_cm
-    real, dimension(nz) :: T1,damping_factor
-    real, dimension(nz) :: source_function
-    
-    damping_factor = T1*h_planck*c_light_cgs*k1_cgs*wave1_cm
-    do i=1,nz
-      if (damping_factor(i) > log_overflow_limit) then
-        damping_factor(i) = log_overflow_limit
-      endif
-    enddo
-    
-    source_function = 2*h_planck*c_light_cgs**2*wave1_cm**5 * 1/(exp(damping_factor)-1)
-    
-  endfunction get_source_function
-!************************************************************************************    
 endmodule Auxiliary
