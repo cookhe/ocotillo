@@ -62,7 +62,6 @@ program flux_feautrier
 ! 
   if (lread_athena) call read_athena_input(inputfile)
 !
-  call cpu_time(start_loop)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! loop through processors  
   do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
