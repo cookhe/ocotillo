@@ -137,7 +137,7 @@ program flux_feautrier
 ! Write output
 !
   if (lroot) then
-    call output_grid(z)
+    call output_grid(z,waves_angstrom)
     !Output for diagnostic purposes 
     call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
   endif
