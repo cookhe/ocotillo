@@ -72,7 +72,7 @@ contains
       !real(c_double), dimension(nzloc,nyloc,nxloc) :: tmp_loc
 
 !      real(c_double), allocatable :: xloc(:),yloc(:),zloc(:)
-      real(c_double), allocatable :: tmp_loc(:,:,:)
+      real(c_double), allocatable :: tmp_loc(:,:,:),tmp_loc_transpose(:,:,:)
 !
       real, dimension(nz,nyloc,nxloc), intent(out) :: rho,temp
 !
@@ -151,7 +151,8 @@ contains
 !
         zn(iz0:iz1) = zloc
 !
-        allocate(tmp_loc(nzloc,nyloc,nxloc))
+        allocate(tmp_loc(nxloc,nyloc,nzloc))
+        allocate(tmp_loc_transpose(nzloc,nyloc,nxloc))
 !
         !rho1=1./rho(:,iy,ix)
         !ekin = 0.5*rho1*ru2(:,iy,ix)
@@ -159,26 +160,26 @@ contains
         !cs2 = gamma*gamma1 * eint * rho1
         !temp(:,iy,ix) = mean_molecular_weight * amu * cs2 * gamma_inv * k1_cgs
 
-        read(99) tmp_loc
-        rho(iz0:iz1,:,:) = tmp_loc
+        read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose)
+        rho(iz0:iz1,:,:) = tmp_loc_transpose
 !
 ! Build kinetic energy; ekin = (rux**2+ruy**2+ruz**2)/(2*rho)
 !        
-        read(99) tmp_loc !rux
-        temp(iz0:iz1,:,:) = .5*tmp_loc**2/rho(iz0:iz1,:,:)
-        read(99) tmp_loc !ruy
-        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc**2/rho(iz0:iz1,:,:)
-        read(99) tmp_loc !ruz
-        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc**2/rho(iz0:iz1,:,:)
+        read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !rux
+        temp(iz0:iz1,:,:) = .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !ruy
+        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !ruz
+        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
 !        
 ! Define internal energy; eint = eng - ekin.
 ! Then the sound speed; cs2 = gamma*gamma1 * eint * rho1
 ! The gammas and the constants will be added in the next subroutine 
 !        
-        read(99) tmp_loc !eng
-        temp(iz0:iz1,:,:) = (tmp_loc-temp(iz0:iz1,:,:))/rho(iz0:iz1,:,:)
+        read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !eng
+        temp(iz0:iz1,:,:) = (tmp_loc_transpose-temp(iz0:iz1,:,:))/rho(iz0:iz1,:,:)
         
-        deallocate(tmp_loc,zloc)
+        deallocate(tmp_loc,zloc,tmp_loc_transpose)
         
         close(99)        
       enddo
@@ -221,5 +222,19 @@ contains
       endif
 !
     endsubroutine postprocess_athena_values
+!************************************************************************************
+    subroutine transpose_loc(a,b)
+!
+      real, dimension(:,:,:),intent(in) :: a
+      real, dimension(:,:,:),intent(out) :: b
+      real, dimension(size(a,1),size(a,2)) :: buffer
+      integer :: i
+!
+      do i=1,size(a,3)
+         buffer   = a(:,:,i)
+         b(i,:,:) = transpose(buffer)
+      enddo
+!
+    endsubroutine transpose_loc
 !************************************************************************************
   endmodule ReadAthena
