@@ -33,12 +33,13 @@ contains
     real, dimension(mz,nw) :: U
     real, dimension(nz,nw) :: absorp_coeff
     integer :: i,iw
-!
+
+    character(len=20) :: format_string
+
+    write(format_string, '("(I6,",I0,"(2e15.5))")') nw
     open(10,file="output/diagnostics.txt",status="replace",action='write')
     do i=1,nz
-      do iw=1,nw
-         write(unit=10,FMT="(2I6,2e15.5)") i,iw,U(n1+i-1,iw),absorp_coeff(i,iw)
-      enddo
+      write(unit=10,FMT=format_string) i, (U(n1+i-1,iw), iw=1,nw), (absorp_coeff(i,iw), iw=1,nw)
     enddo
     close(10)
 
