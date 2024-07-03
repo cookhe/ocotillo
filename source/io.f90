@@ -44,9 +44,10 @@ contains
 
   endsubroutine output_ascii
 !************************************************************************************
-  subroutine output_grid(z)
+  subroutine output_grid(z, waves)
 
     real, dimension(mz) :: z
+    real, dimension(nw) :: waves
     integer :: i
 !
     open(15,file="output/zgrid.txt",status="replace",action='write')
@@ -55,12 +56,22 @@ contains
     enddo
     close(15)
 !
-    open(55, file='output/zgrid.bin',form='unformatted',status='replace',action='write')
+    open(55,file="output/zgrid.bin",form="unformatted",status="replace",action="write")
     write(55) z
     close(55)
+
+    open(25,file="output/wavegrid.txt",status="replace",action="write")
+    do i=1,nw
+      write(unit=25,FMT=*) i,waves(i)
+    enddo
+    close(25)
+
+    open(65,file="output/wavegrid.bin",form="unformatted",status="replace",action="write")
+    write(65) waves
+    close(65)
 !    
   endsubroutine output_grid
-!************************************************************************************  
+!************************************************************************************
   subroutine output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
 
     real, dimension(mz,nyloc,nxloc,nw) :: U
