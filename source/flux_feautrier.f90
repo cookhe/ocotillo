@@ -77,7 +77,7 @@ program flux_feautrier
 !
 !***********************************************************************
   !xy-dependent starts here
-  call cpu_time(start_loop)
+  if (lroot) call cpu_time(start_loop)
 !***********************************************************************
   xloop: do ix=1,nxloc
     yloop: do iy=1,nyloc
@@ -128,7 +128,7 @@ program flux_feautrier
     enddo yloop
   enddo xloop
 !
-  call cpu_time(finish_loop)
+  if (lroot) call cpu_time(finish_loop)
 !
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
@@ -154,7 +154,7 @@ program flux_feautrier
        " micro-seconds per frequency point per mesh point."
   print*,''
   print*,"Loop time = ",finish_loop-start_loop," seconds."
-  print*,"Loop execution time =",(finish_loop-start_loop)/(1d0*nz*ny*nxloc*nw)*1e6,&
+  print*,"Loop execution time =",(finish_loop-start_loop)*(nprocx*nprocy)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
   
 endprogram flux_feautrier
