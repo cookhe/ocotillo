@@ -52,6 +52,7 @@ contains
     endif
 !     
     print*, 'waves_angstrom min/max', minval(wa),maxval(wa)
+    print*, 'number of waves', nw
 !
   endsubroutine calc_wavelength
 !************************************************************************************
