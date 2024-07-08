@@ -18,7 +18,7 @@ program flux_feautrier
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
   real, dimension(nw) :: waves_angstrom
-  real :: dz,z0,z1
+  real :: dz,z0,z1,dz1
   real :: start, finish
   real :: start_loop, finish_loop  
   real :: w0=3000,w1=5000
@@ -70,7 +70,7 @@ program flux_feautrier
   if (lread_athena) then
     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
-    call calc_grid(z1,z0,z,dz)
+    call calc_grid(z1,z0,z,dz,dz1)
     call calc_density(p%rho,z)
     call calc_temperature(p%T,z)
   endif
@@ -120,9 +120,15 @@ program flux_feautrier
         if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
         call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
         call update_ghosts(U(:,iy,ix,iw))
-        if (lfirst) print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
+        call calc_flux(U(:,iy,ix,iw),p,dz1)
+!
+        if (lfirst) then
+           print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
+           print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
+        endif
 !
         absorp_coeff(:,iy,ix,iw)=p%opacity
+        V(:,iy,ix,iw) = p%flux
 !
       enddo wavelength
     enddo yloop
@@ -132,7 +138,7 @@ program flux_feautrier
 !
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
-  !call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
+!  call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
 !
 ! Write output
 !
@@ -141,7 +147,7 @@ program flux_feautrier
     !Output for diagnostic purposes 
     call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
   endif
-  call output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
+  call output_binary(U,absorp_coeff,V,iprocx,iprocy,snapshot)
   enddo;enddo
 ! 
 ! Finish the time counter and print the wall time
