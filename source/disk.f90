@@ -39,10 +39,10 @@ contains
 !
    endsubroutine read_density_input
 !************************************************************************************
-   subroutine calc_grid(z1,z0,z,dz,dz1)
+   subroutine calc_grid(z1,z0,z,dz)
 !
       real, dimension(mz) :: z
-      real :: dz,z1,z0,dz1
+      real :: dz,z1,z0
       integer :: i
 !
       dz = (z1-z0)/(nz-1)
@@ -58,8 +58,6 @@ contains
          z(n1-i) = z(n1) - i*dz
          z(n2+i) = z(n2) + i*dz
       enddo
-!
-      dz1=1./dz
 !
     endsubroutine calc_grid
 !************************************************************************************

@@ -70,10 +70,11 @@ program flux_feautrier
   if (lread_athena) then
     call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
   else
-    call calc_grid(z1,z0,z,dz,dz1)
+    call calc_grid(z1,z0,z,dz)
     call calc_density(p%rho,z)
     call calc_temperature(p%T,z)
   endif
+  dz1=1./dz
 !
 !***********************************************************************
   !xy-dependent starts here
@@ -122,13 +123,13 @@ program flux_feautrier
         call update_ghosts(U(:,iy,ix,iw))
         call calc_flux(U(:,iy,ix,iw),p,dz1)
 !
+        absorp_coeff(:,iy,ix,iw)=p%opacity
+        V(:,iy,ix,iw) = p%flux
+!
         if (lfirst) then
            print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
            print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
         endif
-!
-        absorp_coeff(:,iy,ix,iw)=p%opacity
-        V(:,iy,ix,iw) = p%flux
 !
       enddo wavelength
     enddo yloop
