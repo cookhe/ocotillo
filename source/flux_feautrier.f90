@@ -13,7 +13,7 @@ program flux_feautrier
   type (pillar_case) :: p
   
   real, dimension(mz,nyloc,nxloc,nw) :: U
-  real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
+  real, dimension(nz,nyloc,nxloc,nw) :: V,absorp_coeff
   real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd

@@ -6,7 +6,7 @@ module Auxiliary
   private
   
   public :: tridag,update_ghosts,der
-  public :: calc_auxiliaries
+  public :: calc_auxiliaries,calc_flux
   public :: fill_center_coeffs,fill_boundary_coeffs
 
 contains
