@@ -73,10 +73,10 @@ contains
 !    
   endsubroutine output_grid
 !************************************************************************************
-  subroutine output_binary(U,absorp_coeff,iprocx,iprocy,snapshot)
+  subroutine output_binary(U,absorp_coeff,V,iprocx,iprocy,snapshot)
 
     real, dimension(mz,nyloc,nxloc,nw) :: U
-    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff
+    real, dimension(nz,nyloc,nxloc,nw) :: absorp_coeff,V
     integer :: iprocx,iprocy
     character(len=90) :: outputdir,snapshot
 
@@ -92,6 +92,11 @@ contains
          form='unformatted',status='replace',action='write')
     write(45) absorp_coeff
     close(45)
+
+    open(75, file=trim(outputdir)//'/flux_'//trim(snapshot)//'.bin', &
+         form='unformatted',status='replace',action='write')
+    write(75) V
+    close(75)
 
   endsubroutine output_binary
 !************************************************************************************
