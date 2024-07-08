@@ -150,11 +150,11 @@ program flux_feautrier
 !
   print*,''
   print*,"Wall time = ",finish-start," seconds."
-  print*,"Execution time =",(finish-start)/(nz*ny*nx*nw)*1e6,&
+  print*,"Execution time =",(finish-start)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
        " micro-seconds per frequency point per mesh point."
   print*,''
   print*,"Loop time = ",finish_loop-start_loop," seconds."
-  print*,"Loop execution time =",(finish_loop-start_loop)/(nz*ny*nx*nw)*1e6,&
+  print*,"Loop execution time =",(finish_loop-start_loop)/(1d0*nz*ny*nxloc*nw)*1e6,&
        " micro-seconds per frequency point per mesh point." 
   
 endprogram flux_feautrier
