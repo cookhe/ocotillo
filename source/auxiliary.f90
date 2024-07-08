@@ -96,6 +96,18 @@ contains
 !
   endsubroutine calc_auxiliaries
 !************************************************************************************
+  subroutine calc_flux(U,p,dz1)
+
+    real, dimension(mz) :: U
+    real, dimension(nz) :: dU
+    type (pillar_case) :: p
+    real :: dz1
+
+    call der(U,dU)
+    p%flux = -1*p%opacity1*dU*dz1
+
+  endsubroutine calc_flux
+!************************************************************************************
   subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz) :: kappa_m,kappa_p
