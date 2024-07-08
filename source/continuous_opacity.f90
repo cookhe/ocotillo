@@ -150,6 +150,7 @@ contains
   subroutine calc_opacity_and_albedo(p,iw)
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
+    real, dimension(nz) :: kappa1_rad
     
     integer :: iw
     type (pillar_case) :: p
@@ -160,10 +161,14 @@ contains
 
     kappa_rad = (kappa_H_bf + kappa_Hm_bf + kappa_Hm_ff + p%e_scatter)*mp1
     p%opacity = kappa_rad * p%rho
-
+!
+! This subroutine changes p%opacity and kappa_rad
+!
     call calc_kappa_H_ff(p,kappa_rad,iw)
-    
-    p%albedo = p%e_scatter * mp1 / kappa_rad
+
+    kappa1_rad=1./kappa_rad
+    p%albedo = p%e_scatter * mp1 * kappa1_rad
+    p%opacity1 = kappa1_rad * p%rho1
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
