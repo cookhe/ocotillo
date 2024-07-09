@@ -18,7 +18,7 @@ program flux_feautrier
   real, dimension(mz) :: z
   real, dimension(nz) :: aa,bb,cc,dd
   real, dimension(nw) :: waves_angstrom
-  real :: dz,z0,z1,dz1
+  real :: dz,z0,z1,dz1,dz2
   real :: start, finish
   real :: start_loop, finish_loop  
   real :: w0=3000,w1=5000
@@ -75,6 +75,7 @@ program flux_feautrier
     call calc_temperature(p%T,z)
   endif
   dz1=1./dz
+  dz2=dz**2
 !
 !***********************************************************************
   !xy-dependent starts here
@@ -113,8 +114,8 @@ program flux_feautrier
 !
 ! Populate coefficient arrays
 !
-        call fill_center_coeffs(aa,bb,cc,dd,p,dz)
-        call fill_boundary_coeffs(aa,bb,cc,dd,p,dz)    
+        call fill_center_coeffs(aa,bb,cc,dd,p,dz2)
+        call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
 !
 ! Solve the system of equations
 !

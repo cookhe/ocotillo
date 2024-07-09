@@ -108,10 +108,10 @@ contains
 
   endsubroutine calc_flux
 !************************************************************************************
-  subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz)
+  subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz2)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz) :: kappa_m,kappa_p
-    real, intent(in) :: dz
+    real, intent(in) :: dz2
     real :: zeta
     integer :: iz
     type (pillar_case) :: p
@@ -130,7 +130,7 @@ contains
     do iz=2, nz-1
       aa(iz) = p%opacity(iz)**2 / kappa_m(iz)
       cc(iz) = p%opacity(iz)**2 / kappa_p(iz)
-      zeta   = dz*dz * p%opacity(iz)**3 * (1 - p%albedo(iz))
+      zeta   = dz2 * p%opacity(iz)**3 * (1 - p%albedo(iz))
       bb(iz) = -(aa(iz) + cc(iz) + zeta)
       dd(iz) = -p%source_function(iz) * zeta
     enddo
@@ -139,24 +139,24 @@ contains
     
   endsubroutine fill_center_coeffs
 !************************************************************************************
-  subroutine fill_boundary_coeffs(aa,bb,cc,dd,p,dz)
+  subroutine fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
     
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
-    real, intent(in) :: dz
+    real, intent(in) :: dz,dz2
     real :: zeta
 
     type (pillar_case) :: p
   
     ! Populate boundary values
     aa(1) = 0.
-    zeta  = p%opacity(1) * dz**2 * (1 - p%albedo(1)) / 4
-    bb(1) = -(1/p%opacity(1) + dz + zeta) * p%opacity(1)**2
-    cc(1) = 1/p%opacity(1) * p%opacity(1)**2
+    zeta  = p%opacity(1) * dz2 * (1 - p%albedo(1))*.25
+    bb(1) = -(p%opacity1(1) + dz + zeta) * p%opacity(1)**2
+    cc(1) = p%opacity(1)
     dd(1) = -p%source_function(1) * zeta * p%opacity(1)**2
     
-    aa(nz) = 1/p%opacity(nz) * p%opacity(nz)**2
-    zeta   = p%opacity(nz) * dz**2 * (1 - p%albedo(nz)) / 4
-    bb(nz) = -(1/p%opacity(nz) + dz + zeta) * p%opacity(nz)**2
+    aa(nz) = p%opacity(nz)
+    zeta   = p%opacity(nz) * dz2 * (1 - p%albedo(nz))*.25
+    bb(nz) = -(p%opacity1(nz) + dz + zeta) * p%opacity(nz)**2
     cc(nz) = 0.
     dd(nz) = -p%source_function(nz) * zeta * p%opacity(nz)**2
 
