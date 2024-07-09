@@ -56,14 +56,20 @@ program flux_feautrier
 
     type (pillar_case) :: p
 !
-! These quantities are the code output: mean intensity (U), flux (V) 
-! and opacity (absorp_coeff).
+! These memory-intensive quantities are the code output: mean intensity (U), 
+! flux (V) and opacity (absorp_coeff). Fortran is column major, but the 
+! calculations will be done in z, so the data is assorted (z,y,x) to have 
+! that direction be the fastest, for cache efficiency. 
 !
     real, dimension(mz,nyloc,nxloc,nw) :: U
     real, dimension(nz,nyloc,nxloc,nw) :: V,absorp_coeff
 !    
+! Density and temperature are the athena input. The input will be by xy 
+! processor and serial in the z direction.
+!
     real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
     real, dimension(mz) :: z
+!
     real, dimension(nz) :: aa,bb,cc,dd
     real, dimension(nw) :: waves_angstrom
     real :: dz,z0,z1,dz1,dz2
@@ -105,103 +111,113 @@ program flux_feautrier
 !
 ! Read the user-defined values for temperature, density, and ionization threshold from input.in
 !
-   call read_temperature_input(inputfile)
-   call read_density_input(inputfile)
-   call read_gas_state_input(inputfile)
+    call read_temperature_input(inputfile)
+    call read_density_input(inputfile)
+    call read_gas_state_input(inputfile)
 !
 ! Calculate the wavelength array. So far only allows linear.  
 !   
-   call calc_wavelength(w1,w0,waves_angstrom)
+    call calc_wavelength(w1,w0,waves_angstrom)
 !
 ! Pre-calculate a number of wavelength-related but space- and time-independent quantities,
 ! to speed up the opacity calculation in run time. 
 !
-   call pre_calc_opacity_quantities(waves_angstrom)
+    call pre_calc_opacity_quantities(waves_angstrom)
 ! 
 ! The code primarily deals with athena output but also uses 
 ! artificial inputs for testing and benchmarking purposes if 
 ! lread_athena is false. 
 !
-   if (lread_athena) call read_athena_input(inputfile)
+    if (lread_athena) call read_athena_input(inputfile)
 !
 ! Here starts the main loop through processors. The code will loop through each block of
 ! x and y processors, read the nxloc,nyloc,nzloc information, and go through the z processors
 ! to reconstitute a nxloc,nyloc,nz array. Then for cache-efficiency it will loop through 
 ! nxloc and nyloc and do operations on the z vertical 1D arrays (pillars).
 !
-   do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-  lroot = (iprocx==0) .and. (iprocy==0)
-  if (lread_athena) then
-    call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
-  else
-    call calc_grid(z1,z0,z,dz)
-    call calc_density(p%rho,z)
-    call calc_temperature(p%T,z)
-  endif
-  dz1=1./dz
-  dz2=dz**2
+    procx: do iprocx=0,nprocx-1
+      procy: do iprocy=0,nprocy-1   
+
+        lroot = (iprocx==0) .and. (iprocy==0)
+! 
+! Read from athena input or construct a fake disk. The z is global,
+! so only the root xy needs calculate it. All others can use it.
 !
-!***********************************************************************
-  !xy-dependent starts here
-  if (lroot) call cpu_time(start_loop)
-!***********************************************************************
-  xloop: do ix=1,nxloc
-    yloop: do iy=1,nyloc
-      if (lread_athena) then
-        p%rho =  rho3d(1:nz,iy,ix)
-        p%T   = temp3d(1:nz,iy,ix)
-      endif
-      p%rho1=1./p%rho
-      p%T1=1./p%T
-      call calc_hydrogen_ion_frac(p)
-      call solve_gas_state(p)
-      p%electron_pressure = get_electron_pressure(p)
-      p%e_scatter         = get_electron_thomson_scattering(p)
-      p%theta             = 5040.* p%T1
-      p%theta1            = 1./p%theta
-      p%lgtheta           = log10(p%theta)
-      p%lgtheta2          = p%lgtheta**2
-      p%hm_bf_factor      = get_hydrogen_ion_bound_free(p)
+        if (lread_athena) then
+          call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
+        else
+          if (lroot) call calc_grid(z1,z0,z,dz)
+          call calc_density(p%rho,z)
+          call calc_temperature(p%T,z)
+        endif
+!      
+!  Shortcuts 
+!
+        if (lroot) then 
+          dz1=1./dz
+          dz2=dz**2
+        endif
+!
+! xy-dependent starts here
+!
+        if (lroot) call cpu_time(start_loop)
+!
+        xloop: do ix=1,nxloc
+          yloop: do iy=1,nyloc
+            if (lread_athena) then
+              p%rho =  rho3d(1:nz,iy,ix)
+              p%T   = temp3d(1:nz,iy,ix)
+            endif
+            p%rho1=1./p%rho
+            p%T1=1./p%T
+            call calc_hydrogen_ion_frac(p)
+            call solve_gas_state(p)
+            p%electron_pressure = get_electron_pressure(p)
+            p%e_scatter         = get_electron_thomson_scattering(p)
+            p%theta             = 5040.* p%T1
+            p%theta1            = 1./p%theta
+            p%lgtheta           = log10(p%theta)
+            p%lgtheta2          = p%lgtheta**2
+            p%hm_bf_factor      = get_hydrogen_ion_bound_free(p)
 !
 ! Loop over wavelengths
 !
-      wavelength: do iw=1,nw
-        lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
+            wavelength: do iw=1,nw
+              lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
 !    
-        if (lgrey) then
-          call grey_parameters(p,sigma_grey)
-        else
-          p%source_function = get_source_function(p%T1,iw)
-          p%stim_factor = get_hydrogen_stimulated_emission(iw,p%theta)
-          call calc_opacity_and_albedo(p,iw)
-        endif
+              if (lgrey) then
+                call grey_parameters(p,sigma_grey)
+              else
+                p%source_function = get_source_function(p%T1,iw)
+                p%stim_factor = get_hydrogen_stimulated_emission(iw,p%theta)
+                call calc_opacity_and_albedo(p,iw)
+              endif
 !
 ! Populate coefficient arrays
 !
-        call fill_center_coeffs(aa,bb,cc,dd,p,dz2)
-        call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
+              call fill_center_coeffs(aa,bb,cc,dd,p,dz2)
+              call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
 !
 ! Solve the system of equations
 !
-        if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
-        call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
-        call update_ghosts(U(:,iy,ix,iw))
-        call calc_flux(U(:,iy,ix,iw),p,dz1)
+              if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
+              call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
+              call update_ghosts(U(:,iy,ix,iw))
+              call calc_flux(U(:,iy,ix,iw),p,dz1)
 !
-        absorp_coeff(:,iy,ix,iw)=p%opacity
-        V(:,iy,ix,iw) = p%flux
+              absorp_coeff(:,iy,ix,iw)=p%opacity
+              V(:,iy,ix,iw) = p%flux
 !
-        if (lfirst) then
-           print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
-           print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
-        endif
+              if (lfirst) then
+                print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
+                print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
+              endif
 !
-      enddo wavelength
-    enddo yloop
-  enddo xloop
+            enddo wavelength
+          enddo yloop
+        enddo xloop
 !
-  if (lroot) call cpu_time(finish_loop)
+        if (lroot) call cpu_time(finish_loop)
 !
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
@@ -209,26 +225,27 @@ program flux_feautrier
 !
 ! Write output
 !
-  if (lroot) then
-    call output_grid(z,waves_angstrom)
-    !Output for diagnostic purposes 
-    call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
-  endif
-  call output_binary(U,absorp_coeff,V,iprocx,iprocy,snapshot)
-  enddo;enddo
+        if (lroot) then
+          call output_grid(z,waves_angstrom)
+          !Output for diagnostic purposes 
+          call output_ascii(U(:,nyloc,nxloc,:),absorp_coeff(:,nyloc,nxloc,:))
+        endif
+        call output_binary(U,absorp_coeff,V,iprocx,iprocy,snapshot)
+      enddo procy
+    enddo procx
 ! 
 ! Finish the time counter and print the wall time
 !
-  call cpu_time(finish)
+    call cpu_time(finish)
 !
-  print*,''
-  print*,"Wall time = ",finish-start," seconds."
-  print*,"Execution time =",(finish-start)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
-       " micro-seconds per frequency point per mesh point."
-  print*,''
-  print*,"Loop time = ",finish_loop-start_loop," seconds."
-  print*,"Loop execution time =",(finish_loop-start_loop)*(nprocx*nprocy)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
-       " micro-seconds per frequency point per mesh point." 
-  
+    print*,''
+    print*,"Wall time = ",finish-start," seconds."
+    print*,"Execution time =",(finish-start)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
+         " micro-seconds per frequency point per mesh point."
+    print*,''
+    print*,"Loop time = ",finish_loop-start_loop," seconds."
+    print*,"Loop execution time =",(finish_loop-start_loop)*(nprocx*nprocy)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
+         " micro-seconds per frequency point per mesh point." 
+!
 endprogram flux_feautrier
 !***********************************************************************
