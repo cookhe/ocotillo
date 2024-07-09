@@ -237,15 +237,15 @@ program flux_feautrier
 ! Finish the time counter and print the wall time
 !
     call cpu_time(finish)
-!
+    !
+    print*,''
+    print*,"Loop time = ",finish_loop-start_loop," seconds."
+    print*,"Loop execution time =",(finish_loop-start_loop)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
+         " micro-seconds per frequency point per mesh point."
     print*,''
     print*,"Wall time = ",finish-start," seconds."
     print*,"Execution time =",(finish-start)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
          " micro-seconds per frequency point per mesh point."
-    print*,''
-    print*,"Loop time = ",finish_loop-start_loop," seconds."
-    print*,"Loop execution time =",(finish_loop-start_loop)*(nprocx*nprocy)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
-         " micro-seconds per frequency point per mesh point." 
 !
 endprogram flux_feautrier
 !***********************************************************************
