@@ -1,70 +1,135 @@
 program flux_feautrier
-
-  use Auxiliary
-  use Common
-  use Disk
-  use GasState
-  use ContinuousOpacity
-  use ReadAthena
-  use FileIO
+!  
+!                    _
+!                 .'` '`.
+!              .-", @ `, `.
+!             '-=;      ;   `.
+!                 \    :      `-.
+!                 /    ';        `.
+!                /      .'         `.
+!                |     (      `.     `-.._
+!                 \     \` ` `. \         `-.._
+!                  `.   ;`-.._ `-`._.-. `-._   `-._
+!                    `..'     `-.```.  `-._ `-.._.'
+!                      `--..__..-`--'      `-.,'
+!                         `._)`/
+!                          /  /
+!                         /--(
+!                      -./,--'`-,
+!                   ,^--(  
+!                   ,--' `-,
+!          ___ _ __   __ _ _ __ _ __ _____      __
+!         / __| '_ \ / _` | '__| '__/ _ \ \ /\ / /
+!         \__ \ |_) | (_| | |  | | | (_) \ V  V / 
+!         |___/ .__/ \__,_|_|  |_|  \___/ \_/\_/  
+!             | |                                 
+!             |_|                                 
+!
+!
+!  SPARROW - Spectral Post-processing AGN Radiaton transfeR On multiple Wavelengths
+!
+!  This program calculates 1D radiative transfer for simulation boxes, 
+!  using the Feautrier method. The main application is for AGN disks; 
+!  the temperatures and thus the opacities span several different regimes,
+!  that are included in the code. 
+!
+!  Usage: setup the soft links, make, then run
+!  
+!             rt_setup 
+!             make
+!             ./source/flux_feautrier.x
+!  
+!  Authors: Harrison E. Cook
+!           Wladimir Lyra  
+!
+!  © 2024
+!
+    use Auxiliary
+    use Common
+    use Disk
+    use GasState
+    use ContinuousOpacity
+    use ReadAthena
+    use FileIO
   
-  implicit none
+    implicit none
 
-  type (pillar_case) :: p
-  
-  real, dimension(mz,nyloc,nxloc,nw) :: U
-  real, dimension(nz,nyloc,nxloc,nw) :: V,absorp_coeff
-  real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
-  real, dimension(mz) :: z
-  real, dimension(nz) :: aa,bb,cc,dd
-  real, dimension(nw) :: waves_angstrom
-  real :: dz,z0,z1,dz1,dz2
-  real :: start, finish
-  real :: start_loop, finish_loop  
-  real :: w0=3000,w1=5000
-  real :: sigma_grey
-  integer :: iw,ix,iy,iprocx,iprocy
-  logical :: lgrey=.false.,lread_athena=.true.
-  character(len=90) :: snapshot
-  character(len=90) :: inputfile='./input.in'
+    type (pillar_case) :: p
 !
-  namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
+! These quantities are the code output: mean intensity (U), flux (V) 
+! and opacity (absorp_coeff).
 !
-! Start the time counter
+    real, dimension(mz,nyloc,nxloc,nw) :: U
+    real, dimension(nz,nyloc,nxloc,nw) :: V,absorp_coeff
+!    
+    real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
+    real, dimension(mz) :: z
+    real, dimension(nz) :: aa,bb,cc,dd
+    real, dimension(nw) :: waves_angstrom
+    real :: dz,z0,z1,dz1,dz2
+    real :: start, finish
+    real :: start_loop, finish_loop  
+    real :: w0=3000,w1=5000
+    real :: sigma_grey
+    integer :: iw,ix,iy,iprocx,iprocy
+    logical :: lgrey=.false.,lread_athena=.true.
+    character(len=90) :: snapshot
+    character(len=90) :: inputfile='./input.in'
 !
-  call cpu_time(start)
+    namelist /input/ z0,z1,w0,w1,sigma_grey,lgrey,lread_athena
 !
+! Start the time counter.
+!
+    call cpu_time(start)
+!
+! The code will take as argument a four string letter to mark the snapshots
+! from Athena. If no argument is given, assume it is the 0000 snapshot.
+! This is needed to launch the code on multiple snapshots from the command  
+! line on a cluster for post-processing. 
+!
+    call getarg(1,snapshot)
+    if (snapshot=='') snapshot="0000"
+!  
 !  Read the input namelist with the user-defined parameters.
 !
-  call getarg(1,snapshot)
-  if (snapshot=='') snapshot="0000"      
-!
-  open(20,file=trim(inputfile))
-  read(20,nml=input)
-  close(20)
+    open(20,file=trim(inputfile))
+    read(20,nml=input)
+    close(20)
 !
 ! Do a sanity check for grey RT
 !
-  if (lgrey.and.(nw /= 1)) then
-    print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
-    stop
-  endif
+    if (lgrey.and.(nw /= 1)) then
+      print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
+      stop
+    endif
 !
-! Calculate the grid variables
+! Read the user-defined values for temperature, density, and ionization threshold from input.in
 !
-  call read_temperature_input(inputfile)
-  call read_density_input(inputfile)
-  call read_gas_state_input(inputfile)
+   call read_temperature_input(inputfile)
+   call read_density_input(inputfile)
+   call read_gas_state_input(inputfile)
 !
-  call calc_wavelength(w1,w0,waves_angstrom)
+! Calculate the wavelength array. So far only allows linear.  
+!   
+   call calc_wavelength(w1,w0,waves_angstrom)
 !
-  call pre_calc_opacity_quantities(waves_angstrom)
+! Pre-calculate a number of wavelength-related but space- and time-independent quantities,
+! to speed up the opacity calculation in run time. 
+!
+   call pre_calc_opacity_quantities(waves_angstrom)
 ! 
-  if (lread_athena) call read_athena_input(inputfile)
+! The code primarily deals with athena output but also uses 
+! artificial inputs for testing and benchmarking purposes if 
+! lread_athena is false. 
 !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-! loop through processors  
-  do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
+   if (lread_athena) call read_athena_input(inputfile)
+!
+! Here starts the main loop through processors. The code will loop through each block of
+! x and y processors, read the nxloc,nyloc,nzloc information, and go through the z processors
+! to reconstitute a nxloc,nyloc,nz array. Then for cache-efficiency it will loop through 
+! nxloc and nyloc and do operations on the z vertical 1D arrays (pillars).
+!
+   do iprocx=0,nprocx-1; do iprocy=0,nprocy-1   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
   lroot = (iprocx==0) .and. (iprocy==0)
   if (lread_athena) then
