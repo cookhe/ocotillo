@@ -150,7 +150,6 @@ contains
   subroutine calc_opacity_and_albedo(p,iw)
 
     real, dimension(nz) :: kappa_rad,kappa_H_bf,kappa_Hm_bf,kappa_Hm_ff
-    real, dimension(nz) :: kappa1_rad
     
     integer :: iw
     type (pillar_case) :: p
@@ -166,9 +165,8 @@ contains
 !
     call calc_kappa_H_ff(p,kappa_rad,iw)
 
-    kappa1_rad=1./kappa_rad
-    p%albedo = p%e_scatter * mp1 * kappa1_rad
-    p%opacity1 = kappa1_rad * p%rho1
+    p%albedo = p%e_scatter * mp1 / kappa_rad
+    p%opacity1 = 1./p%opacity
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
@@ -356,6 +354,7 @@ contains
     alpha_grey = 3.68e22 * p%T**(-3.5) *  p%rho
     p%opacity = (alpha_grey+sigma_grey)*p%rho
     p%albedo  = sigma_grey / (alpha_grey + sigma_grey)
+    p%opacity1 = 1./p%opacity
 
   endsubroutine grey_parameters
 !************************************************************************************
