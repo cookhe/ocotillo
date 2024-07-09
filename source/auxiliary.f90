@@ -128,8 +128,8 @@ contains
 
     ! Populate centers of arrays 
     do iz=2, nz-1
-      aa(iz) = p%opacity(iz)**2 / kappa_m(iz)
-      cc(iz) = p%opacity(iz)**2 / kappa_p(iz)
+      aa(iz) = p%opacity2(iz) / kappa_m(iz)
+      cc(iz) = p%opacity2(iz) / kappa_p(iz)
       zeta   = dz2 * p%opacity(iz)**3 * (1 - p%albedo(iz))
       bb(iz) = -(aa(iz) + cc(iz) + zeta)
       dd(iz) = -p%source_function(iz) * zeta
@@ -150,15 +150,15 @@ contains
     ! Populate boundary values
     aa(1) = 0.
     zeta  = p%opacity(1) * dz2 * (1 - p%albedo(1))*.25
-    bb(1) = -(p%opacity1(1) + dz + zeta) * p%opacity(1)**2
+    bb(1) = -(p%opacity1(1) + dz + zeta) * p%opacity2(1)
     cc(1) = p%opacity(1)
-    dd(1) = -p%source_function(1) * zeta * p%opacity(1)**2
+    dd(1) = -p%source_function(1) * zeta * p%opacity2(1)
     
     aa(nz) = p%opacity(nz)
     zeta   = p%opacity(nz) * dz2 * (1 - p%albedo(nz))*.25
-    bb(nz) = -(p%opacity1(nz) + dz + zeta) * p%opacity(nz)**2
+    bb(nz) = -(p%opacity1(nz) + dz + zeta) * p%opacity2(nz)
     cc(nz) = 0.
-    dd(nz) = -p%source_function(nz) * zeta * p%opacity(nz)**2
+    dd(nz) = -p%source_function(nz) * zeta * p%opacity2(nz)
 
     if (lfirst) print*, ' Filled boundary coeffs'
     

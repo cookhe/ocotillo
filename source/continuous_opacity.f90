@@ -167,6 +167,7 @@ contains
 
     p%albedo = p%e_scatter * mp1 / kappa_rad
     p%opacity1 = 1./p%opacity
+    p%opacity2 = p%opacity**2
 
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
@@ -355,6 +356,7 @@ contains
     p%opacity = (alpha_grey+sigma_grey)*p%rho
     p%albedo  = sigma_grey / (alpha_grey + sigma_grey)
     p%opacity1 = 1./p%opacity
+    p%opacity2 = p%opacity**2
 
   endsubroutine grey_parameters
 !************************************************************************************
