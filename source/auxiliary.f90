@@ -7,7 +7,7 @@ module Auxiliary
   
   public :: tridag,update_ghosts,der
   public :: calc_auxiliaries,calc_flux
-  public :: fill_center_coeffs,fill_boundary_coeffs
+  public :: get_tridag_coefficients
 
 contains
 !************************************************************************************
@@ -107,6 +107,17 @@ contains
     p%flux = -1*p%opacity1*dU*dz1
 
   endsubroutine calc_flux
+!************************************************************************************
+  subroutine get_tridag_coefficients(aa,bb,cc,dd,p,dz,dz2)
+!
+    real, dimension(nz), intent(inout) :: aa,bb,cc,dd
+    real, intent(in) :: dz,dz2
+    type (pillar_case) :: p
+!
+    call fill_center_coeffs(aa,bb,cc,dd,p,dz2)
+    call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
+!
+  endsubroutine get_tridag_coefficients
 !************************************************************************************
   subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz2)
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd

@@ -2,12 +2,14 @@
 module GasState
 
   use Common
+  use ContinuousOpacity
   
   implicit none
   private
 
   public :: calc_hydrogen_ion_frac,solve_gas_state
   public :: get_electron_pressure,read_gas_state_input
+  public :: wavelength_independent_pillars
 
   real :: fully_ionized_T
   namelist /gas_state_input/ fully_ionized_T
@@ -24,6 +26,24 @@ contains
     close(iu)
 
   endsubroutine read_gas_state_input
+!******************************************
+  subroutine wavelength_independent_pillars(p)
+!    
+    type (pillar_case) :: p
+!    
+    p%rho1=1./p%rho
+    p%T1=1./p%T
+    call calc_hydrogen_ion_frac(p)
+    call solve_gas_state(p)
+    p%electron_pressure = get_electron_pressure(p)
+    p%e_scatter         = get_electron_thomson_scattering(p)
+    p%theta             = 5040.* p%T1
+    p%theta1            = 1./p%theta
+    p%lgtheta           = log10(p%theta)
+    p%lgtheta2          = p%lgtheta**2
+    p%hm_bf_factor      = get_hydrogen_ion_bound_free(p)
+!
+  endsubroutine wavelength_independent_pillars
 !******************************************
   subroutine calc_hydrogen_ion_frac(p)
   real, dimension(nz) :: constants,niine_ni,c_ion,exparg

@@ -137,7 +137,7 @@ contains
 
   endfunction get_hydrogen_ion_bound_free
 !************************************************************************************
-  function get_hydrogen_stimulated_emission(iw, theta) result(stim_factor)
+  function get_hydrogen_stimulated_emission(theta,iw) result(stim_factor)
 
     real, intent(in), dimension(nz) :: theta  ! theta = 5040./T[K]
     real, dimension(nz) :: stim_factor
@@ -153,6 +153,8 @@ contains
     
     integer :: iw
     type (pillar_case) :: p
+
+    p%stim_factor = get_hydrogen_stimulated_emission(p%theta,iw)
     
     kappa_H_bf  = get_kappa_H_bf(p,iw)
     kappa_Hm_bf = get_kappa_Hm_bf(p,iw)
@@ -168,7 +170,9 @@ contains
     p%albedo = p%e_scatter * mp1 / kappa_rad
     p%opacity1 = 1./p%opacity
     p%opacity2 = p%opacity**2
-
+!
+    p%source_function = get_source_function(p%T1,iw)
+!    
   endsubroutine calc_opacity_and_albedo
 !************************************************************************************
   function get_kappa_H_bf(p, iw) result(kappa_H_bf)
