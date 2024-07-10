@@ -240,7 +240,7 @@ program flux_feautrier
     !
     print*,''
     print*,"processor column time = ",finish_loop-start_loop," seconds."
-    print*,"processor column execution time =",(finish_loop-start_loop)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
+    print*,"Execution time =",(finish_loop-start_loop)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
          " micro-seconds per wavelength point per mesh point."
     print*,''
     print*,"Wall time = ",finish-start," seconds."
