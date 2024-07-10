@@ -70,7 +70,7 @@ program flux_feautrier
     real, dimension(nz,nyloc,nxloc) :: rho3d,temp3d
     real, dimension(mz) :: z
 !
-    real, dimension(nz) :: aa,bb,cc,dd
+    real, dimension(nz) :: a,b,c,d
     real, dimension(nw) :: waves_angstrom
     real :: dz,z0,z1,dz1,dz2
     real :: start, finish
@@ -140,8 +140,9 @@ program flux_feautrier
 
         lroot = (iprocx==0) .and. (iprocy==0)
 ! 
-! Read from athena input or construct a fake disk. The z is global,
-! so only the root xy needs calculate it. All others can use it.
+! Read from athena input or construct a fake disk (density and temperature).
+! The z direction is global, so only the root xy needs calculate it.
+! All others can use it.
 !
         if (lread_athena) then
           call read_from_athena(z,dz,rho3d,temp3d,iprocx,iprocy,snapshot)
@@ -151,62 +152,76 @@ program flux_feautrier
           call calc_temperature(p%T,z)
         endif
 !      
-!  Shortcuts 
+!  Shortcuts for the dz grid resolution.
 !
         if (lroot) then 
           dz1=1./dz
           dz2=dz**2
         endif
 !
-! xy-dependent starts here
+! xy-dependent starts here.
 !
         if (lroot) call cpu_time(start_loop)
 !
         xloop: do ix=1,nxloc
           yloop: do iy=1,nyloc
+!
+! The fake disk has axisymmetric structure and thus the pillars for density
+! and temperature in that case are defined already outside the xyloop. 
+! Read here the athena input instead. 
+!
             if (lread_athena) then
               p%rho =  rho3d(1:nz,iy,ix)
               p%T   = temp3d(1:nz,iy,ix)
             endif
-            p%rho1=1./p%rho
-            p%T1=1./p%T
-            call calc_hydrogen_ion_frac(p)
-            call solve_gas_state(p)
-            p%electron_pressure = get_electron_pressure(p)
-            p%e_scatter         = get_electron_thomson_scattering(p)
-            p%theta             = 5040.* p%T1
-            p%theta1            = 1./p%theta
-            p%lgtheta           = log10(p%theta)
-            p%lgtheta2          = p%lgtheta**2
-            p%hm_bf_factor      = get_hydrogen_ion_bound_free(p)
+!           
+! Pre-define the pillars needed for the opacity calculation.
+!            
+            call wavelength_independent_pillars(p)
 !
-! Loop over wavelengths
+! Loop over wavelengths.
 !
             wavelength: do iw=1,nw
               lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
 !    
+! These subroutines will calculate the opacity, albedo, and source function.  
+!
               if (lgrey) then
                 call grey_parameters(p,sigma_grey)
               else
-                p%source_function = get_source_function(p%T1,iw)
-                p%stim_factor = get_hydrogen_stimulated_emission(iw,p%theta)
                 call calc_opacity_and_albedo(p,iw)
               endif
 !
-! Populate coefficient arrays
+! Having the opacity, albedo, and source function, we can solve for the mean intensity. 
+! This will be done via a tridiagonal system  
 !
-              call fill_center_coeffs(aa,bb,cc,dd,p,dz2)
-              call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
+!    a_i U_{i-1} + b_i U_i + c_i U_{i+1} = d_i
 !
-! Solve the system of equations
+! The next subroutine will calculate the coefficients a,b,c,d. 
 !
-              if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',sum(aa), sum(bb), sum(cc), sum(dd)
-              call tridag(aa, bb, cc, dd, U(n1:n2,iy,ix,iw))
+              call get_tridag_coefficients(a,b,c,d,p,dz,dz2)
+!
+! Safety check for no NaNs in the coefficients. 
+!
+              if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',&
+                                  sum(a), sum(b), sum(c), sum(d)
+!
+! Solve the tridiagonal system to get the mean intensity.
+!
+              call tridag(a,b,c,d,U(n1:n2,iy,ix,iw))
+!              
+! Calculate the flux V = -1./kappa  * dU/dz. 
+! The mean intensity needs boundary conditions to calculate the derivative. 
+!
               call update_ghosts(U(:,iy,ix,iw))
               call calc_flux(U(:,iy,ix,iw),p,dz1)
 !
+! Save opacity and flux into larger memomy arrays for output.
+!
               absorp_coeff(:,iy,ix,iw)=p%opacity
               V(:,iy,ix,iw) = p%flux
+!
+! Safety check for no NaNs in mean intensity and flux. 
 !
               if (lfirst) then
                 print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
@@ -237,11 +252,16 @@ program flux_feautrier
 ! Finish the time counter and print the wall time
 !
     call cpu_time(finish)
-    !
+!
+! Wall time only for the loop, in a single xy processor block. 
+!
     print*,''
     print*,"processor column time = ",finish_loop-start_loop," seconds."
     print*,"Execution time =",(finish_loop-start_loop)/(1d0*nz*nyloc*nxloc*nw)*1e6,&
          " micro-seconds per wavelength point per mesh point."
+!
+! Wall time for the whole code
+!
     print*,''
     print*,"Wall time = ",finish-start," seconds."
     print*,"Execution time =",(finish-start)/(1d0*nz*ny*nx*nw)*1e6,&
