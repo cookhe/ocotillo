@@ -102,6 +102,10 @@ program flux_feautrier
     read(20,nml=input)
     close(20)
 !
+!  Report which athena snapshot is being used.
+!
+    if (lread_athena) print*,"snapshot: ",snapshot
+!
 ! Do a sanity check for grey RT
 !
     if (lgrey.and.(nw /= 1)) then
@@ -226,6 +230,7 @@ program flux_feautrier
               if (lfirst) then
                 print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
                 print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
+                print*, 'min/max(absorp_coeff)', minval(absorp_coeff(:,iy,ix,iw)), maxval(absorp_coeff(:,iy,ix,iw))
               endif
 !
             enddo wavelength
