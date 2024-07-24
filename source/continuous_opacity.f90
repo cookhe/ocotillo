@@ -36,15 +36,20 @@ contains
 !************************************************************************************
   subroutine calc_wavelength(w1,w0,wa)
 !
+! Calculate the wavelength array considering the bounds w0 & w1 set in
+! the file "input.in" and the number of wavelengths nw set in the file
+! "resoultion.in". If only one wavelength is requested, return w0.
+!
     real, dimension(nw), intent(out) :: wa
     real, intent(in) :: w1,w0
     real :: dw
     integer :: i
 !
     if (nw >1 ) then
+      ! using nw-1 next ensures w1 is included in the array
       dw = (w1-w0)/(nw-1)
       do i=1,nw
-        !wavelengths in angstrom
+        ! wavelengths in angstrom
         wa(i) = w0 + (i-1)*dw
       enddo
     else
@@ -57,25 +62,38 @@ contains
   endsubroutine calc_wavelength
 !************************************************************************************
   subroutine pre_calc_opacity_quantities(waves_angstrom)
-
+!
+! The following quantities are used throughout the radiative transfer calculation.
+! They only depend on the wavelength, but since that's our inner-most loop, we 
+! precalculate them here to save computation time.
+!
     real, dimension(nw) :: waves_angstrom,wcm,lgwave
     integer :: n,iw,i,j
 !
     damping_factor_const = h_planck*c_light_cgs*k1_cgs
     source_function_const = 2*h_planck*c_light_cgs**2
 !    
-    wa = waves_angstrom
+    wa = waves_angstrom ! shorthand
 !    
-    wcm  = wa*1d-8 !wavelengths in cm
-    wcm1 = 1./wcm
-    nu = c_light_cgs*wcm1
+    wcm  = wa*1d-8 ! wavelengths in cm, shorthand
+    wcm1 = 1./wcm  ! define inverse wavelength
+    nu = c_light_cgs*wcm1  ! frequency: Hz = 1/s
 !    
-    chi  = 1.2398e4/wa
+    chi  = 1.2398e4/wa  ! equivalent to Χ = hν, using angstroms
     chi1 = 1./chi
 !
     wa3 = wa**3
     w1cm5 = wcm1**5
+!====================================================================
+!
+! portion of Gaunt factor for hydrogen free-free absorption
+!
     gff_factor = 0.3456 * (wa * Rangstrom)**(-one_third)
+!====================================================================
+!
+! Negative hydrogen ion (two electrons) bound-free absorption cross-section
+! alpha_bf(H-) = a_0 + a_1*λ + a_2*λ**2 + a_3*λ**3
+!              + a_4*λ**4 + a_5*λ**5 + a_6*λ**6
 !
     a_coeff = (/+1.99654,&
          -1.18267e-6,&
@@ -89,8 +107,12 @@ contains
     do i=1,7
       s_coeff = s_coeff + 1e-17*a_coeff(i)*wa**(i-1)
     enddo
+!====================================================================
 !
-    b_coeff = transpose(reshape(                                   &
+! Negative hydrogen ion (two electrons) free-free absorption cross-section
+! coefficient array.
+!
+    b_coeff = transpose(reshape(                             &
          (/-2.276300,-1.685000,+0.766610,-0.053356,+0.000000,&
          +15.28270,-9.284600,+1.993810,-0.142631,+0.000000,  &
          -197.789,+190.266,-67.9775,+10.6913,-0.62515/),     &
@@ -129,10 +151,13 @@ contains
   endfunction get_electron_thomson_scattering
 !************************************************************************************
   function get_hydrogen_ion_bound_free(p) result(hm_bf_factor)
-
+!
+!    A = 4.158e-10 * P_e * θ**2.5 * 10**(0.754 * θ)
+!  where 0.754 is the ionization potential energy of an electron in the ion
+!
     real, dimension(nz) :: hm_bf_factor
     type (pillar_case) :: p
-    
+!
     hm_bf_factor=4.158e-10 * p%electron_pressure * p%theta**2.5 * 10**(0.754 * p%theta)
 
   endfunction get_hydrogen_ion_bound_free
