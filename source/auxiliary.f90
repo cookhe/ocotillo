@@ -6,7 +6,7 @@ module Auxiliary
   private
   
   public :: tridag,update_ghosts,der
-  public :: calc_auxiliaries,calc_flux
+  public :: calc_intensity,calc_flux
   public :: get_tridag_coefficients
 
 contains
@@ -77,27 +77,27 @@ contains
 !    
   endsubroutine der
 !************************************************************************************
-  subroutine calc_auxiliaries(U,absorp_coeff,dz,V,Ip,Im)
-
+  subroutine calc_intensity(U,V,Ip,Im)
+!
+! Calculate upwards (Ip) and downwards (Im) intensities
+! from U and V
+!
     real, dimension(mz,nw) :: U
-    real, dimension(nz,nw) :: V,Ip,Im,absorp_coeff
-    real, dimension(nz) :: dU
-    real :: dz
+    real, dimension(nz,nw) :: V,Ip,Im
     integer :: iw
 !
     do iw=1,nw
-      call update_ghosts(U(:,iw))
-      call der(U(:,iw),dU)
-      V(:,iw) = -1/absorp_coeff(:,iw) * dU / dz
-!
       Ip(:,iw) = U(n1:n2,iw) + V(:,iw)
       Im(:,iw) = U(n1:n2,iw) - V(:,iw)
     enddo
 !
-  endsubroutine calc_auxiliaries
+  endsubroutine calc_intensity
 !************************************************************************************
   subroutine calc_flux(U,p,dz1)
-
+!
+! Calculate flux (V) from the mean intensity (U)
+! V = -1/kappa * dU/dz
+!
     real, dimension(mz) :: U
     real, dimension(nz) :: dU
     type (pillar_case) :: p
@@ -110,6 +110,9 @@ contains
 !************************************************************************************
   subroutine get_tridag_coefficients(aa,bb,cc,dd,p,dz,dz2)
 !
+! Fill in the coefficients of the system of equations in U.
+! Note: center and boundary coefficients are calculated differently.
+!
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, intent(in) :: dz,dz2
     type (pillar_case) :: p
@@ -120,6 +123,19 @@ contains
   endsubroutine get_tridag_coefficients
 !************************************************************************************
   subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz2)
+!
+! Populate the center coefficients of the tridiagonal system
+! for zones i=2 to i=nz-1.
+! i.e.:
+!         _                                          _     _        _
+!        |    a_2    b_2    c_2       0       ...     |   |   d2     |
+!        |           ...                              | = |   ...    |
+!        |                  ...                       | = |   ...    |
+!        |                           ...              | = |   ...    |
+!        |_   ...     0    a_nz-1   b_nz-1   c_nz-1  _|   |_ d_nz-1 _|
+!
+! Note on notation: kappa_* have the same units as p%opacity.
+!
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, dimension(nz) :: kappa_m,kappa_p
     real, intent(in) :: dz2
@@ -138,6 +154,8 @@ contains
     enddo
 
     ! Populate centers of arrays 
+    ! Each coefficient is multiplied by opacity**2 to match the order
+    !   of the boundary coefficients.
     do iz=2, nz-1
       aa(iz) = p%opacity2(iz) / kappa_m(iz)
       cc(iz) = p%opacity2(iz) / kappa_p(iz)
@@ -151,7 +169,14 @@ contains
   endsubroutine fill_center_coeffs
 !************************************************************************************
   subroutine fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
-    
+!
+! Populate the center coefficients of the tridiagonal system
+! for zones i=1 and i=nz.
+! i.e.:
+!        a_1 [  b_1  c_1    0    ...   ]       =  [   d1   ]
+! and
+!            [  ...   0   a_nz  b_nz   ] c_nz  =  [  d_nz  ]
+!
     real, dimension(nz), intent(inout) :: aa,bb,cc,dd
     real, intent(in) :: dz,dz2
     real :: zeta
