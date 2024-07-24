@@ -178,59 +178,59 @@ program flux_feautrier
               p%rho =  rho3d(1:nz,iy,ix)
               p%T   = temp3d(1:nz,iy,ix)
             endif
-!           
-! Pre-define the pillars needed for the opacity calculation.
-!            
+            !
+            ! Pre-define the pillars needed for the opacity calculation.
+            !
             call wavelength_independent_pillars(p)
-!
-! Loop over wavelengths.
-!
+            !
+            ! Loop over wavelengths.
+            !
             wavelength: do iw=1,nw
-              lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
-!    
-! These subroutines will calculate the opacity, albedo, and source function.  
-!
-              if (lgrey) then
-                call grey_parameters(p,sigma_grey)
-              else
-                call calc_opacity_and_albedo(p,iw)
-              endif
-!
-! Having the opacity, albedo, and source function, we can solve for the mean intensity. 
-! This will be done via a tridiagonal system  
-!
-!    a_i U_{i-1} + b_i U_i + c_i U_{i+1} = d_i
-!
-! The next subroutine will calculate the coefficients a,b,c,d. 
-!
-              call get_tridag_coefficients(a,b,c,d,p,dz,dz2)
-!
-! Safety check for no NaNs in the coefficients. 
-!
-              if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',&
-                                  sum(a), sum(b), sum(c), sum(d)
-!
-! Solve the tridiagonal system to get the mean intensity.
-!
-              call tridag(a,b,c,d,U(n1:n2,iy,ix,iw))
-!              
-! Calculate the flux V = -1./kappa  * dU/dz. 
-! The mean intensity needs boundary conditions to calculate the derivative. 
-!
-              call update_ghosts(U(:,iy,ix,iw))
-              call calc_flux(U(:,iy,ix,iw),p,dz1)
-!
-! Save opacity and flux into larger memomy arrays for output.
-!
-              absorp_coeff(:,iy,ix,iw)=p%opacity
-              V(:,iy,ix,iw) = p%flux
-!
-! Safety check for no NaNs in mean intensity and flux. 
-!
-              if (lfirst) then
-                print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
-                print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
-                print*, 'min/max(absorp_coeff)', minval(absorp_coeff(:,iy,ix,iw)), maxval(absorp_coeff(:,iy,ix,iw))
+            lfirst=lroot.and.(ix==1).and.(iy==1).and.(iw==1) 
+            !    
+            ! These subroutines will calculate the opacity, albedo, and source function.  
+            !
+            if (lgrey) then
+              call grey_parameters(p,sigma_grey)
+            else
+              call calc_opacity_and_albedo(p,iw)
+            endif
+            !
+            ! Having the opacity, albedo, and source function, we can solve for the mean intensity. 
+            ! This will be done via a tridiagonal system  
+            !
+            !    a_i U_{i-1} + b_i U_i + c_i U_{i+1} = d_i
+            !
+            ! The next subroutine will calculate the coefficients a,b,c,d. 
+            !
+            call get_tridag_coefficients(a,b,c,d,p,dz,dz2)
+            !
+            ! Safety check for no NaNs in the coefficients. 
+            !
+            if (lfirst) print*,'sum(a), sum(b), sum(c), sum(d)=',&
+            sum(a), sum(b), sum(c), sum(d)
+            !
+            ! Solve the tridiagonal system to get the mean intensity.
+            !
+            call tridag(a,b,c,d,U(n1:n2,iy,ix,iw))
+            !              
+            ! Calculate the flux V = -1./kappa  * dU/dz. 
+            ! The mean intensity needs boundary conditions to calculate the derivative. 
+            !
+            call update_ghosts(U(:,iy,ix,iw))
+            call calc_flux(U(:,iy,ix,iw),p,dz1)
+            !
+            ! Save opacity and flux into larger memomy arrays for output.
+            !
+            absorp_coeff(:,iy,ix,iw)=p%opacity
+            V(:,iy,ix,iw) = p%flux
+            !
+            ! Safety check for no NaNs in mean intensity and flux. 
+            !
+            if (lfirst) then
+              print*, 'min/max(U)', minval(U(n1:n2,iy,ix,iw)), maxval(U(n1:n2,iy,ix,iw))
+              print*, 'min/max(V)', minval(V(:,iy,ix,iw)), maxval(V(:,iy,ix,iw))
+              print*, 'min/max(absorp_coeff)', minval(absorp_coeff(:,iy,ix,iw)), maxval(absorp_coeff(:,iy,ix,iw))
               endif
 !
             enddo wavelength
@@ -241,7 +241,7 @@ program flux_feautrier
 !
 ! Calculate post-processing on one column for diagnostic: flux and intensities.
 !
-!  call calc_auxiliaries(U(:,ny,nx,:),absorp_coeff(:,ny,nx,:),dz,V,Ip,Im)
+!  call calc_intensity(U,V,Ip,Im)
 !
 ! Write output
 !
