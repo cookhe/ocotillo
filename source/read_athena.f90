@@ -14,14 +14,14 @@ module ReadAthena
   character(len=90)   :: datadir="./input_athena/distributed"
 
   real :: Mbh_SolarMasses,r0ref_rg
-  real :: aspect_ratio,mean_molecular_weight,rho0
+  real :: aspect_ratio,mean_molecular_weight,rho0,rho_floor
 
   real :: rg,Mbh,rr,g0,Omega,H
   real :: unit_time,unit_length,unit_velocity
   real :: unit_density,unit_temperature
 
-  namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-       aspect_ratio,mean_molecular_weight,rho0,datadir
+    namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
+      aspect_ratio,mean_molecular_weight,rho0,datadir,rho_floor
   
 contains
 !************************************************************************************
@@ -198,7 +198,21 @@ contains
 !
       integer :: i,ix,iy
 !
+! Apply density floor after converting to physical units
+!
       rho = rho*unit_density
+      if (ISNAN(rho_floor)) then
+        print*,""
+        print*,"Must set `rho_floor` (cgs) value in namelist: `input.in/athena_input`."
+        print*,""
+        stop ! quit program
+      else
+        ! Apply density floor
+        where (rho < rho_floor) rho = rho_floor
+      endif
+!
+! convert temperature to physical units
+!
       temp = temp*gamma1*unit_temperature
 !
       zn=zn*unit_length
