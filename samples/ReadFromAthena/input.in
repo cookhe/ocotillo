@@ -26,4 +26,5 @@
   aspect_ratio = 0.005
   mean_molecular_weight  = 1.0079764
   rho0=1e-9
+  rho_floor=1e-15
 /
