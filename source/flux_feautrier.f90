@@ -62,7 +62,7 @@ program flux_feautrier
 ! that direction be the fastest, for cache efficiency. 
 !
     real, dimension(mz,nyloc,nxloc,nw) :: U
-    real, dimension(nz,nyloc,nxloc,nw) :: V,absorp_coeff
+    real, dimension(:,:,:,:), allocatable :: V,absorp_coeff
 !    
 ! Density and temperature are the athena input. The input will be by xy 
 ! processor and serial in the z direction.
@@ -78,6 +78,7 @@ program flux_feautrier
     real :: w0=3000,w1=5000
     real :: sigma_grey
     integer :: iw,ix,iy,iprocx,iprocy
+    integer :: err
     logical :: lgrey=.false.,lread_athena=.true.
     character(len=90) :: snapshot
     character(len=90) :: inputfile='./input.in'
@@ -110,6 +111,23 @@ program flux_feautrier
 !
     if (lgrey.and.(nw /= 1)) then
       print*,"For Grey RT use only one wavelength. Switch nw=1 in resolution.in"
+      stop
+    endif
+!
+! Allocate the arrays for flux and opacity. Make it allocatable because
+! otherwise it will allocate too much static memory when the resolution is high.
+! It was leading to relocation truncated error R_X86_64_PC32 when running on a
+! snapshot of size nz=1280,nyloc=60,nxloc=60,nw=25 as of Dec 2024.
+!
+    allocate(V(nz,nyloc,nxloc,nw),stat=err)
+    if (err/=0) then
+      print*,"Could not allocate array of size ",nz,nyloc,nxloc,nw," for array V."
+      stop
+    endif
+!
+    allocate(absorp_coeff(nz,nyloc,nxloc,nw),stat=err)
+    if (err/=0) then
+      print*,"Could not allocate array of size ",nz,nyloc,nxloc,nw," for array absorp_coeff."
       stop
     endif
 !
@@ -253,6 +271,9 @@ program flux_feautrier
         call output_binary(U,absorp_coeff,V,iprocx,iprocy,snapshot)
       enddo procy
     enddo procx
+!
+    deallocate(V)
+    deallocate(absorp_coeff)
 ! 
 ! Finish the time counter and print the wall time
 !
