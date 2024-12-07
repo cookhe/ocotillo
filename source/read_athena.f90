@@ -20,8 +20,13 @@ module ReadAthena
   real :: unit_time,unit_length,unit_velocity
   real :: unit_density,unit_temperature
 
+  integer :: nzloc_aux
+
+  logical :: lavoid_momentum_underflow=.false.
+
     namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
-      aspect_ratio,mean_molecular_weight,rho0,datadir,rho_floor
+      aspect_ratio,mean_molecular_weight,rho0,datadir,rho_floor,&
+      lavoid_momentum_underflow
   
 contains
 !************************************************************************************
@@ -131,6 +136,7 @@ contains
           stop
         endif
         read(99) nzloc
+        nzloc_aux=nzloc
 !       
         read(99) dummy2_int,dummy3_int,dummy4_int,dummy5_int !nvar,nscalars,selfgrav_boolean, particles_boolean
         read(99) gamma1
@@ -165,12 +171,28 @@ contains
 !
 ! Build kinetic energy; ekin = (rux**2+ruy**2+ruz**2)/(2*rho)
 !        
+        temp(iz0:iz1,:,:)=0.0
+
         read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !rux
-        temp(iz0:iz1,:,:) = .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        if (.not.lavoid_momentum_underflow) then
+          temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        else
+          call fix_momentum_underflow(tmp_loc_transpose,temp,rho,iz0,iz1)
+        endif
+
         read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !ruy
-        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        if (.not.lavoid_momentum_underflow) then
+          temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        else
+          call fix_momentum_underflow(tmp_loc_transpose,temp,rho,iz0,iz1)
+        endif
+
         read(99) tmp_loc; call transpose_loc(tmp_loc,tmp_loc_transpose) !ruz
-        temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        if (.not.lavoid_momentum_underflow) then
+          temp(iz0:iz1,:,:) = temp(iz0:iz1,:,:) + .5*tmp_loc_transpose**2/rho(iz0:iz1,:,:)
+        else
+          call fix_momentum_underflow(tmp_loc_transpose,temp,rho,iz0,iz1)
+        endif
 !        
 ! Define internal energy; eint = eng - ekin.
 ! Then the sound speed; cs2 = gamma*gamma1 * eint * rho1
@@ -187,6 +209,23 @@ contains
       call postprocess_athena_values(rho,temp,zn,z,dz,gamma1)
 !
     endsubroutine read_from_athena
+!************************************************************************************
+    subroutine fix_momentum_underflow(pp,temp,rho,iz0,iz1)
+!
+      real(c_double), dimension(nzloc_aux,nyloc,nxloc), intent(in) :: pp
+      real, dimension(nz,nyloc,nxloc),intent(inout) :: temp,rho 
+      integer, intent(in) :: iz0,iz1      
+      integer :: ix,iy,iz,jz
+!
+      do jz=iz0,iz1
+        iz=jz-iz0+1
+        do iy=1,nyloc; do ix=1,nxloc
+          if (abs(pp(iz,iy,ix)) .ge. epsilon(0.0)) &
+               temp(jz,iy,ix) = temp(jz,iy,ix) + .5*pp(iz,iy,ix)**2/rho(jz,iy,ix)
+        enddo;enddo
+      enddo
+!
+    endsubroutine fix_momentum_underflow
 !************************************************************************************
     subroutine postprocess_athena_values(rho,temp,zn,z,dz,gamma1)
 !
