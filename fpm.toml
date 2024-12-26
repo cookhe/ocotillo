@@ -1,0 +1,17 @@
+[extra.ford]
+project = "Ocotillo"
+author = "Harrison Cook, Wladimir Lyra"
+summary = """
+This is Ocotillo, a code for spectrally resolved, post-processing
+radiative transfer calculations for astrohpysical applications.
+
+It uses an implicit method to include scattering in the source function.
+"""
+
+src_dir = "./source/"
+
+project_github = ""
+
+
+# favicon.png image for HTML page icon
+#favicon = 
