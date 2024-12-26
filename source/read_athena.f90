@@ -22,7 +22,7 @@ module ReadAthena
 
   integer :: nzloc_aux
 
-  logical :: lavoid_momentum_underflow=.false.
+  logical :: lavoid_momentum_underflow=.true.
 
     namelist /athena_input/ RunName,Mbh_SolarMasses,r0ref_rg,&
       aspect_ratio,mean_molecular_weight,rho0,datadir,rho_floor,&
