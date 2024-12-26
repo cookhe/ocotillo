@@ -5,12 +5,12 @@
 #   Link files into a local source directory
 #
 #-----------------------------------------------------------------------------
-specrt_home_path=$SPECRT_HOME
+ocotillo_home_path=$OCO_HOME
 src="`pwd`/source"
 output="`pwd`/output"
-srcdir=$specrt_home_path/source
+srcdir=$ocotillo_home_path/source
 #
-echo "Files will be linked to the root code directory '$specrt_home_path'."
+echo "Files will be linked to the root code directory '$ocotillo_home_path'."
 #
 # Remove any broken links...
 #

@@ -19,7 +19,7 @@ nw = 5        # number of wavelengths
 ng = 3        # number of ghost zones
 
 # specify data
-datadir = "/home1/07139/hecook/specRT/samples/multiInTest/output/"
+datadir = "/home1/07139/hecook/ocotillo/samples/multiInTest/output/"
 snapshot = "0000"
 
 
