@@ -1,9 +1,10 @@
 ##  -*-Makefile-*- (for Emacs)    vim:set filetype=make:  (for vim)
 
 #FC=mpifort
-FC=mpif90
+#FC=mpif90
+FC=gfortran
 
-FFLAGS = -O3 -fdefault-real-8 -fdefault-double-8 -Wall -finit-real=NaN -finit-integer=-2147483648 -g -fbacktrace -fimplicit-none -fcheck=all -ffpe-trap=invalid,zero,overflow,denormal 
+FFLAGS = -O3 -fdefault-real-8 -fdefault-double-8 -Wall -finit-real=NaN -finit-integer=-2147483648 -g -fbacktrace -fimplicit-none -fcheck=all -ffpe-trap=invalid,zero,overflow,denormal,overflow 
 #FFLAGS += -pg
 
 compile: common.f90 disk.f90 auxiliary.f90 continuous_opacity.f90 gas_state.f90 flux_feautrier.f90 read_athena.f90 io.f90 pillars.inc ../input.in ../resolution.in
@@ -15,7 +16,7 @@ compile: common.f90 disk.f90 auxiliary.f90 continuous_opacity.f90 gas_state.f90 
 	$(FC) $(FFLAGS) -c io.f90
 	$(FC) $(FFLAGS) -c read_athena.f90
 	$(FC) $(FFLAGS) -c flux_feautrier.f90
-	$(FC) common.o auxiliary.o disk.o continuous_opacity.o gas_state.o read_athena.o io.o flux_feautrier.o -ldl -o flux_feautrier.x 
+	$(FC) -mcmodel=large -Wl,--no-relax common.o auxiliary.o disk.o continuous_opacity.o gas_state.o read_athena.o io.o flux_feautrier.o -ldl -o flux_feautrier.x 
 
 clean:
 	rm -f *.o *.mod *.x
