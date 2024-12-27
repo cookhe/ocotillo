@@ -24,8 +24,7 @@ Add the code's directory to your `PATH` variable in your `.bashrc` file (or equi
 export OCO_HOME="$HOME/<path-to-code>/ocotillo"
 export PATH="$OCO_HOME/bin:$PATH"
 ```
-
-Don't forget to source the file so these changes take effect!
+where `<path-to-code>` is where you've cloned the code in the previous step. Don't forget to source the file so these changes take effect!
 ```
 source ~/.bashrc
 ```
