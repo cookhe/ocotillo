@@ -21,7 +21,7 @@ Add the code's directory to your `PATH` variable in your `.bashrc` file (or equi
 
 ```
 # ocotillo code
-export OCO_HOME="$HOME/code/ocotillo"
+export OCO_HOME="$HOME/<path-to-code>/ocotillo"
 export PATH="$OCO_HOME/bin:$PATH"
 ```
 
