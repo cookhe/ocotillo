@@ -11,7 +11,7 @@ module Auxiliary
   public :: get_tridag_coefficients
 
 contains
-!************************************************************************************
+!====================================================================================
   subroutine tridag(a,b,c,r,u)
     !! Solves a tridiagonal system of equations.
     !! Imported from numerical recipes.
@@ -51,7 +51,7 @@ contains
     enddo
 !
   endsubroutine tridag
-!************************************************************************************
+!====================================================================================
   subroutine update_ghosts(f)
     !! Update the ghost zones of an array 
     !! using constant gradient. Used on U.     
@@ -67,7 +67,7 @@ contains
     enddo
 !
   endsubroutine update_ghosts
-!************************************************************************************
+!====================================================================================
   subroutine der(f,df)
     !! Calculate the sixth-order first derivative of an array.
 !    
@@ -85,13 +85,13 @@ contains
                +      (f(n1+3:n2+3)-f(n1-3:n2-3)))
 !    
   endsubroutine der
-!************************************************************************************
+!====================================================================================
   subroutine calc_intensity(U,V,Ip,Im)
-    !! Calculate upwards (Ip) and downwards (Im) intensities
-    !! from U and V.
-    !! 
-    !! $$ I_{\rm p} = U + V $$
-    !! $$ I_{\rm m} = U - V $$
+    !* Calculate upwards (Ip) and downwards (Im) intensities
+    !  from U and V.
+    ! 
+    !  $$ I_{\rm p} = U + V $$
+    !* $$ I_{\rm m} = U - V $$
 !
     real, dimension(mz,nw) :: U
     !! Mean intensity array.
@@ -106,7 +106,7 @@ contains
     enddo
 !
   endsubroutine calc_intensity
-!************************************************************************************
+!====================================================================================
   subroutine calc_flux(U,p,dz1)
     !! Calculate flux (V) from the mean intensity (U) and opacity (\(\kappa\))
     !! $$ V = -\frac{1}{\kappa} * \frac{dU}{dz} $$
@@ -126,7 +126,7 @@ contains
     p%flux = -1*p%opacity1*dU*dz1
 
   endsubroutine calc_flux
-!************************************************************************************
+!====================================================================================
   subroutine get_tridag_coefficients(aa,bb,cc,dd,p,dz,dz2)
     !! Fill in the coefficients of the system of equations in U.
     !! @note
@@ -144,17 +144,17 @@ contains
     call fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
 !
   endsubroutine get_tridag_coefficients
-!************************************************************************************
+!====================================================================================
   subroutine fill_center_coeffs(aa,bb,cc,dd,p,dz2)
     !! Populate the center coefficients of the tridiagonal system
     !! for zones i=2 to i=nz-1.
-    !! i.e.:
-    !!         _                                          _      _        _
-    !!       \|    \(a_2\)    \(b_2\)    \(c_2\)       \(0\)       ...     \|  \|   \(d2\)     \|
-    !!       \|           ...                              \| =\|   ...    \|
-    !!       \|                  ...                       \| =\|   ...    \|
-    !!       \|                           ...              \| =\|   ...    \|
-    !!       \|_   ...     \(0\)    \(a_{nz-1}\)   \(b_{nz-1}\)   \(c_{nz-1}\)  _\|  \|_ \(d_{nz-1}\) _\|
+    ! !! i.e.:
+    ! !!         _                                          _      _        _
+    ! !!       \|    \(a_2\)    \(b_2\)    \(c_2\)       \(0\)       ...     \|  \|   \(d2\)     \|
+    ! !!       \|           ...                              \| =\|   ...    \|
+    ! !!       \|                  ...                       \| =\|   ...    \|
+    ! !!       \|                           ...              \| =\|   ...    \|
+    ! !!       \|_   ...     \(0\)    \(a_{nz-1}\)   \(b_{nz-1}\)   \(c_{nz-1}\)  _\|  \|_ \(d_{nz-1}\) _\|
     !! @note
     !! On notation below: `kappa_*` have the same units as `p%opacity`.
     !! @endnote
@@ -196,7 +196,7 @@ contains
     if (lfirst) print*, ' Filled center coeffs'
     
   endsubroutine fill_center_coeffs
-!************************************************************************************
+!====================================================================================
   subroutine fill_boundary_coeffs(aa,bb,cc,dd,p,dz,dz2)
     !! Populate the center coefficients of the tridiagonal system
     !! for zones i=1 and i=nz. 
@@ -231,5 +231,5 @@ contains
     if (lfirst) print*, ' Filled boundary coeffs'
     
   endsubroutine fill_boundary_coeffs
-!************************************************************************************
+!====================================================================================
 endmodule Auxiliary
