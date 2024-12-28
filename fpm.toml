@@ -10,8 +10,10 @@ It uses an implicit method to include scattering in the source function.
 
 src_dir = "./source/"
 graph = "true"
-project_github = ""
-
+project_github = "https://github.com/cookhe/ocotillo/"
+extensions = [
+    "inc", "in"
+]
 
 # favicon.png image for HTML page icon
 #favicon = 

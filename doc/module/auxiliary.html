@@ -150,15 +150,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-      <hr>
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
-<hr>
+      <p>Auxiliary subroutines used throughout the code.</p>
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -189,7 +181,8 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Solves a tridiagonal system of equations.
+Imported from numerical recipes.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -214,7 +207,8 @@
             <td>::</td>
             <td><strong>a</strong></td>
             <td>
-
+<p>Coefficients for the left-hand side (a, b, c) 
+and value of the right-hand side (r)</p>
             </td>
         </tr>
         <tr>
@@ -229,7 +223,8 @@
             <td>::</td>
             <td><strong>b</strong></td>
             <td>
-
+<p>Coefficients for the left-hand side (a, b, c) 
+and value of the right-hand side (r)</p>
             </td>
         </tr>
         <tr>
@@ -244,7 +239,8 @@
             <td>::</td>
             <td><strong>c</strong></td>
             <td>
-
+<p>Coefficients for the left-hand side (a, b, c) 
+and value of the right-hand side (r)</p>
             </td>
         </tr>
         <tr>
@@ -259,7 +255,8 @@
             <td>::</td>
             <td><strong>r</strong></td>
             <td>
-
+<p>Coefficients for the left-hand side (a, b, c) 
+and value of the right-hand side (r)</p>
             </td>
         </tr>
         <tr>
@@ -274,7 +271,7 @@
             <td>::</td>
             <td><strong>u</strong></td>
             <td>
-
+<p>Value for which to solve.</p>
             </td>
         </tr>
     </tbody>
@@ -289,7 +286,8 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Update the ghost zones of an array 
+using constant gradient. Used on U.     </p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -314,7 +312,7 @@
             <td>::</td>
             <td><strong>f</strong></td>
             <td>
-
+<p>Array to update.</p>
             </td>
         </tr>
     </tbody>
@@ -329,7 +327,7 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Calculate the sixth-order first derivative of an array.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -354,7 +352,7 @@
             <td>::</td>
             <td><strong>f</strong></td>
             <td>
-
+<p>Array to calculate the derivative including ghost zones.</p>
             </td>
         </tr>
         <tr>
@@ -369,7 +367,7 @@
             <td>::</td>
             <td><strong>df</strong></td>
             <td>
-
+<p>Derivative of the array.</p>
             </td>
         </tr>
     </tbody>
@@ -384,7 +382,8 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Calculate upwards (Ip) and downwards (Im) intensities
+ from U and V.</p><a href="../proc/calc_intensity.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -399,7 +398,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-u~2"></span>
+              <span class="anchor" id="variable-u~4"></span>
               real,
             </td>
 <td></td>
@@ -409,12 +408,12 @@
             <td>::</td>
             <td><strong>U</strong></td>
             <td>
-
+<p>Mean intensity array.</p>
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-v~2"></span>
+              <span class="anchor" id="variable-v~3"></span>
               real,
             </td>
 <td></td>
@@ -424,7 +423,7 @@
             <td>::</td>
             <td><strong>V</strong></td>
             <td>
-
+<p>Flux, upward intensity, and downward intensity.</p>
             </td>
         </tr>
         <tr>
@@ -439,7 +438,7 @@
             <td>::</td>
             <td><strong>Ip</strong></td>
             <td>
-
+<p>Flux, upward intensity, and downward intensity.</p>
             </td>
         </tr>
         <tr>
@@ -454,7 +453,7 @@
             <td>::</td>
             <td><strong>Im</strong></td>
             <td>
-
+<p>Flux, upward intensity, and downward intensity.</p>
             </td>
         </tr>
     </tbody>
@@ -469,7 +468,9 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Calculate flux (V) from the mean intensity (U) and opacity (<script type="math/tex">\kappa</script>)
+<script type="math/tex; mode=display"> V = -\frac{1}{\kappa} * \frac{dU}{dz} </script>
+</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -484,7 +485,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-u~3"></span>
+              <span class="anchor" id="variable-u~5"></span>
               real,
             </td>
 <td></td>
@@ -494,7 +495,7 @@
             <td>::</td>
             <td><strong>U</strong></td>
             <td>
-
+<p>Mean intensity array.</p>
             </td>
         </tr>
         <tr>
@@ -509,7 +510,7 @@
             <td>::</td>
             <td><strong>p</strong></td>
             <td>
-
+<p>Pillar object containing the radiative transfer quantitites.</p>
             </td>
         </tr>
         <tr>
@@ -524,7 +525,8 @@
             <td>::</td>
             <td><strong>dz1</strong></td>
             <td>
-
+<p>Inverse of the grid size along z: <script type="math/tex">1/dz</script>
+</p>
             </td>
         </tr>
     </tbody>
@@ -539,7 +541,7 @@
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Fill in the coefficients of the system of equations in U.</p><a href="../proc/get_tridag_coefficients.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -564,7 +566,7 @@
             <td>::</td>
             <td><strong>aa</strong></td>
             <td>
-
+<p>Tridiag system coefficients</p>
             </td>
         </tr>
         <tr>
@@ -579,7 +581,7 @@
             <td>::</td>
             <td><strong>bb</strong></td>
             <td>
-
+<p>Tridiag system coefficients</p>
             </td>
         </tr>
         <tr>
@@ -594,7 +596,7 @@
             <td>::</td>
             <td><strong>cc</strong></td>
             <td>
-
+<p>Tridiag system coefficients</p>
             </td>
         </tr>
         <tr>
@@ -609,7 +611,7 @@
             <td>::</td>
             <td><strong>dd</strong></td>
             <td>
-
+<p>Tridiag system coefficients</p>
             </td>
         </tr>
         <tr>
@@ -624,7 +626,7 @@
             <td>::</td>
             <td><strong>p</strong></td>
             <td>
-
+<p>Pillar object to update.</p>
             </td>
         </tr>
         <tr>
@@ -639,7 +641,7 @@
             <td>::</td>
             <td><strong>dz</strong></td>
             <td>
-
+<p>Grid size (dz) and its square (dz2) along z.</p>
             </td>
         </tr>
         <tr>
@@ -654,7 +656,7 @@
             <td>::</td>
             <td><strong>dz2</strong></td>
             <td>
-
+<p>Grid size (dz) and its square (dz2) along z.</p>
             </td>
         </tr>
     </tbody>

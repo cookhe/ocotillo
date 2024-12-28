@@ -139,6 +139,9 @@
 </h2>
     
 
+    <p>Calculate flux (V) from the mean intensity (U) and opacity (<script type="math/tex">\kappa</script>)
+<script type="math/tex; mode=display"> V = -\frac{1}{\kappa} * \frac{dU}{dz} </script>
+</p>
 
 
     <h3>Arguments</h3>
@@ -154,7 +157,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-u~3"></span>
+              <span class="anchor" id="variable-u~5"></span>
               real,
             </td>
 <td></td>
@@ -164,7 +167,7 @@
             <td>::</td>
             <td><strong>U</strong></td>
             <td>
-                
+                <p>Mean intensity array.</p>
             </td>
         </tr>
         <tr>
@@ -179,7 +182,7 @@
             <td>::</td>
             <td><strong>p</strong></td>
             <td>
-                
+                <p>Pillar object containing the radiative transfer quantitites.</p>
             </td>
         </tr>
         <tr>
@@ -194,7 +197,8 @@
             <td>::</td>
             <td><strong>dz1</strong></td>
             <td>
-                
+                <p>Inverse of the grid size along z: <script type="math/tex">1/dz</script>
+</p>
             </td>
         </tr>
     </tbody>
