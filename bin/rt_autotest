@@ -57,3 +57,5 @@ cd $old_dir
 echo
 echo "========================================================================"
 echo
+echo "\|/ Ocotillo autotest complete \|/" 
+echo
