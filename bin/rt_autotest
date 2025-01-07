@@ -5,10 +5,10 @@
 #   Link files into a local source directory
 #
 #-----------------------------------------------------------------------------
-specrt_home_path=$SPECRT_HOME
+ocotillo_home_path=$OCO_HOME
 old_dir="`pwd`"
 
-datadir=$SPECRT_HOME"/samples/GreyIsothermal"
+datadir=$OCO_HOME"/samples/GreyIsothermal"
 echo $datadir
 cd $datadir
 make cleanall
@@ -20,7 +20,7 @@ echo
 echo "========================================================================"
 echo
 
-datadir=$SPECRT_HOME"/samples/NongreyAGN"
+datadir=$OCO_HOME"/samples/NongreyAGN"
 echo $datadir
 cd $datadir
 make cleanall
@@ -32,7 +32,7 @@ echo
 echo "========================================================================"
 echo
 
-datadir=$SPECRT_HOME"/samples/ReadFromAthena"
+datadir=$OCO_HOME"/samples/ReadFromAthena"
 echo $datadir
 cd $datadir
 make cleanall
@@ -45,7 +45,7 @@ echo
 echo "========================================================================"
 echo
 
-datadir=$SPECRT_HOME"/samples/multiInTest"
+datadir=$OCO_HOME"/samples/multiInTest"
 echo $datadir
 cd $datadir
 make cleanall

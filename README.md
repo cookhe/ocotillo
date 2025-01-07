@@ -1,35 +1,34 @@
-# specRT
+# Ocotillo
 Spectrally resolved post-processing radiative transfer code. 
 ## setup instructions
-Fork the repository to your account using the "Fork" button at the top of the webpage: https://github.com/cookhe/specRT
+Fork the repository to your account using the "Fork" button at the top of the webpage: https://github.com/cookhe/ocotillo
 
 Clone the repository to your local machine with either of the following methods
 
 SSH is the preferred method. (see github's [guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent) to setting up ssh keys)
 
 ```
-git clone git@github.com:cookhe/specRT.git
+git clone git@github.com:cookhe/ocotillo.git
 ```
 
 or HTTPS:
 
 ```
-git clone https://github.com/cookhe/specRT.git
+git clone https://github.com/cookhe/ocotillo.git
 ```
 
 Add the code's directory to your `PATH` variable in your `.bashrc` file (or equivalent: e.g. `.bash_profile`, `.profile`, etc.) by adding the following lines:
 
 ```
-# specRT code
-export SPECRT_HOME="$HOME/code/specRT"
-export PATH="$SPECRT_HOME/bin:$PATH"
+# ocotillo code
+export OCO_HOME="$HOME/<path-to-code>/ocotillo"
+export PATH="$OCO_HOME/bin:$PATH"
 ```
-
-Don't forget to source the file so these changes take effect!
+where `<path-to-code>` is where you've cloned the code in the previous step. Don't forget to source the file so these changes take effect!
 ```
 source ~/.bashrc
 ```
-## test specRT
+## test ocotillo
 
 Try running the autotest.
 ```
