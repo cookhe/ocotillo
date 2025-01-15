@@ -7,20 +7,20 @@ import numpy as np
 # set the following parameters to match those used to run
 #   the athena and radiative transfer calculations
 # Athena:
-nprocx = 2#8
-nprocy = 1#8
-nz = 36#640
-ny = 34#480
-nx = 32#480
+nprocx = 16
+nprocy = 16
+nz = 1280
+ny = 960
+nx = 960
 # radiative transfer:
-w0 = 3000 # angstroms
-w1 = 5000
-nw = 5        # number of wavelengths
-ng = 3        # number of ghost zones
+w0 = 4473.469387755103 # angstroms
+w1 = 8000
+nw = 25        # number of wavelengths
+ng = 3         # number of ghost zones
 
 # specify data
-datadir = "/home1/07139/hecook/ocotillo/samples/multiInTest/output/"
-snapshot = "0000"
+datadir = "/scratch/07139/hecook/run-data/production/midplane/athena/"
+snapshot = "0025"
 
 
 """
