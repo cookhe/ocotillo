@@ -1,32 +1,4 @@
 program flux_feautrier
-!  
-!                    _
-!                 .'` '`.
-!              .-", @ `, `.
-!             '-=;      ;   `.
-!                 \    :      `-.
-!                 /    ';        `.
-!                /      .'         `.
-!                |     (      `.     `-.._
-!                 \     \` ` `. \         `-.._
-!                  `.   ;`-.._ `-`._.-. `-._   `-._
-!                    `..'     `-.```.  `-._ `-.._.'
-!                      `--..__..-`--'      `-.,'
-!                         `._)`/
-!                          /  /
-!                         /--(
-!                      -./,--'`-,
-!                   ,^--(  
-!                   ,--' `-,
-!          ___ _ __   __ _ _ __ _ __ _____      __
-!         / __| '_ \ / _` | '__| '__/ _ \ \ /\ / /
-!         \__ \ |_) | (_| | |  | | | (_) \ V  V / 
-!         |___/ .__/ \__,_|_|  |_|  \___/ \_/\_/  
-!             | |                                 
-!             |_|                                 
-!
-!
-!  SPARROW - Spectral Post-processing AGN Radiaton transfeR On multiple Wavelengths
 !
 !  This program calculates 1D radiative transfer for simulation boxes, 
 !  using the Feautrier method. The main application is for AGN disks; 
