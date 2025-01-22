@@ -1,4 +1,13 @@
-# Ocotillo
+<h1 align="center">
+    <br>
+    <a href="https://github.com/cookhe/ocotillo"><img src="branding/logo/ocotillo_sky.png" alt="Ocotillo" width="500"></a>
+    <br>
+    <span style="font-weight: normal">
+        Ocotillo
+    </span>  
+    <br>
+</h1>
+
 Spectrally resolved post-processing radiative transfer code. 
 ## setup instructions
 Fork the repository to your account using the "Fork" button at the top of the webpage: https://github.com/cookhe/ocotillo
