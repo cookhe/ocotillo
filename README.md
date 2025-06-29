@@ -1,5 +1,5 @@
 # Ocotillo
-Spectrally resolved post-processing radiative transfer code. 
+Multi-wavelength post-processing radiative transfer code. 
 ## setup instructions
 Fork the repository to your account using the "Fork" button at the top of the webpage: https://github.com/cookhe/ocotillo
 
