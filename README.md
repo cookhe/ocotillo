@@ -116,5 +116,12 @@ integer, parameter :: nprocx=1,nprocy=1,nprocz=1
 integer, parameter :: nyloc=ny/nprocy,nxloc=nx/nprocx  ! Number of grid points in computational domain   
 ```
 
+## opacity calculations with python
 
+> [!CAUTION]
+> This feature is provided temporarily until a python wrapper for the main code is created.
+> Updates to the Fortran code base may not have been transfered one-to-one to these Python files, so results may diverge over time.
 
+A simple python version of the opacities is included in `tools/ocotillo-py/`.
+
+See the `INSTRUCTIONS.md` file located in that directory for guidance on usage and expected output.
