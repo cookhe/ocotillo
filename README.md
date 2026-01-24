@@ -120,7 +120,7 @@ integer, parameter :: nyloc=ny/nprocy,nxloc=nx/nprocx  ! Number of grid points i
 
 > [!CAUTION]
 > This feature is provided temporarily until a python wrapper for the main code is created.
-> Since it's a separate code base, some minor differences may exist between Python and Fortran results.
+> Updates to the Fortran code base may not have been transfered one-to-one to these Python files, so results may diverge over time.
 
 A simple python version of the opacities is included in `tools/ocotillo-py/`.
 
