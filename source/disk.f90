@@ -25,7 +25,7 @@ contains
     read(30,nml=temperature_input)
     close(30)
 !
-    switchTemp = (1+epsi) * isoTemp ! must be larger than mdiTemp
+    switchTemp = (1+epsi) * isoTemp ! must be larger than midTemp
 !
    endsubroutine read_temperature_input
 !************************************************************************************
